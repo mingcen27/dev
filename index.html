@@ -21,7 +21,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, serverTimestamp, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global variables provided by the Canvas environment
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -57,7 +57,6 @@
 
                         // Set up the real-time comments listener after successful authentication
                         const commentsCollection = collection(db, `artifacts/${appId}/public/data/comments`);
-                        // NOTE: Removed orderBy('timestamp', 'desc') to avoid needing an index.
                         const commentsQuery = query(commentsCollection);
 
                         onSnapshot(commentsQuery, (snapshot) => {
@@ -67,13 +66,18 @@
                             const sortedComments = snapshot.docs.map(doc => ({...doc.data(), id: doc.id})).sort((a, b) => b.timestamp - a.timestamp);
                             sortedComments.forEach((data) => {
                                 const commentElement = document.createElement('div');
-                                commentElement.classList.add('bg-white', 'p-4', 'rounded-lg', 'shadow-md');
+                                commentElement.classList.add('bg-white', 'p-4', 'rounded-lg', 'shadow-md', 'mb-4');
                                 commentElement.innerHTML = `
-                                    <div class="flex items-center mb-2">
-                                        <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold text-sm mr-3">
-                                            ${data.name.charAt(0).toUpperCase()}
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold text-sm mr-3">
+                                                ${data.name.charAt(0).toUpperCase()}
+                                            </div>
+                                            <h4 class="font-bold text-gray-800">${data.name}</h4>
                                         </div>
-                                        <h4 class="font-bold text-gray-800">${data.name}</h4>
+                                        <button class="delete-comment-btn text-red-500 hover:text-red-700 transition duration-300" data-id="${data.id}" title="Hapus Komentar">
+                                            <ion-icon name="trash-outline"></ion-icon>
+                                        </button>
                                     </div>
                                     <p class="text-gray-600 mb-2">${data.comment}</p>
                                     <p class="text-xs text-gray-400">Dibuat pada: ${data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString() : 'Sekarang'}</p>
@@ -81,6 +85,26 @@
                                 commentsList.appendChild(commentElement);
                             });
                         });
+                        
+                        // Handle comment deletion using event delegation
+                        const commentsList = document.getElementById('comments-list');
+                        commentsList.addEventListener('click', async (e) => {
+                            if (e.target.closest('.delete-comment-btn')) {
+                                const deleteButton = e.target.closest('.delete-comment-btn');
+                                const commentId = deleteButton.dataset.id;
+                                
+                                if (commentId) {
+                                    try {
+                                        const commentRef = doc(db, `artifacts/${appId}/public/data/comments`, commentId);
+                                        await deleteDoc(commentRef);
+                                        console.log("Komentar berhasil dihapus!");
+                                    } catch (error) {
+                                        console.error("Kesalahan saat menghapus komentar:", error);
+                                    }
+                                }
+                            }
+                        });
+
 
                         // Handle comment form submission only after userId is available
                         const commentForm = document.getElementById('comment-form');
@@ -297,7 +321,7 @@
                     </form>
                     
                     <!-- Display Comments -->
-                    <div id="comments-list" class="space-y-4">
+                    <div id="comments-list" class="space-y-4 max-h-96 overflow-y-auto pr-2">
                         <!-- Comments will be loaded here by JavaScript -->
                     </div>
                 </div>
@@ -319,7 +343,7 @@
                 <!-- Ikon YouTube -->
                 <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300" title="YouTube"><ion-icon name="logo-youtube" class="text-2xl"></ion-icon></a>
             </div>
-            <p class="text-gray-500 mt-10 text-sm">&copy; 2025 NamaAplikasi. Dikembangkan dengan ❤️ oleh [Nama Anda].</p>
+            <p class="text-gray-500 mt-10 text-sm">&copy; 2025. Dikembangkan dengan ❤️ oleh [Mingcen].</p>
         </div>
     </footer>
 </body>
