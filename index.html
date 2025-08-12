@@ -44,11 +44,6 @@
                 if (user) {
                     userId = user.uid;
                     console.log("User signed in:", userId);
-                    // Update the UI with the user ID
-                    const userIdElement = document.getElementById('user-id');
-                    if (userIdElement) {
-                        userIdElement.textContent = userId;
-                    }
 
                     // Set up the real-time comments listener after successful authentication
                     const commentsCollection = collection(db, `artifacts/${appId}/public/data/comments`);
@@ -195,9 +190,10 @@
                 <h1 class="text-4xl md:text-6xl font-bold leading-tight mb-4">Kerja Lebih Cerdas, Bukan Lebih Keras.</h1>
                 <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-10"><b>Aplikasi</b> ini dapat membantu Anda untuk mengelola tugas, melacak progres, dan menyelesaikan pekerjaan lebih cepat.</p>
                 <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
-                    <a href="#download-link-windows" class="cta-button bg-indigo-600 text-white hover:bg-indigo-700 transform hover:scale-105">
-                        <ion-icon name="logo-windows"></ion-icon>
-                        Unduh untuk Android
+                    <a href="#fitur" class="cta-button bg-indigo-600 text-white hover:bg-indigo-700 transform hover:scale-105">
+                        <!-- Ikon Windows diubah menjadi ikon unduhan cloud -->
+                        <ion-icon name="cloud-download-outline"></ion-icon>
+                        Download Aplikasinya Disini
                     </a>
                 </div>
             </div>
@@ -296,9 +292,6 @@
                     <!-- Display Comments -->
                     <div id="comments-list" class="space-y-4">
                         <!-- Comments will be loaded here by JavaScript -->
-                    </div>
-                    <div class="mt-4 text-sm text-gray-500 text-center">
-                        <p>ID Anda: <span id="user-id" class="font-mono text-gray-700">Memuat...</span></p>
                     </div>
                 </div>
             </div>
