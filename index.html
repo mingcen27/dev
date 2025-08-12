@@ -20,13 +20,22 @@
     <!-- Firebase SDK - Firestore -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global variables provided by the Canvas environment
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+
+        // Firebase configuration provided by the user
+        const firebaseConfig = {
+            apiKey: "AIzaSyA21JXWHE7AJm7EWDKXgbsmvm8BgmP-pHM",
+            authDomain: "mingcen-52b65.firebaseapp.com",
+            projectId: "mingcen-52b65",
+            storageBucket: "mingcen-52b65.firebasestorage.app",
+            messagingSenderId: "204252909058",
+            appId: "1:204252909058:web:c0ba89b90b8a2fe1e4211b",
+            measurementId: "G-EM8DX6B4EL"
+        };
 
         // Initialize Firebase
         let app;
@@ -41,81 +50,79 @@
             
             // Sign in with the provided token or anonymously
             onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    userId = user.uid;
-                    console.log("User signed in:", userId);
+                try {
+                    if (user) {
+                        userId = user.uid;
+                        console.log("Pengguna berhasil masuk:", userId);
 
-                    // Set up the real-time comments listener after successful authentication
-                    const commentsCollection = collection(db, `artifacts/${appId}/public/data/comments`);
-                    // NOTE: Removed orderBy('timestamp', 'desc') to avoid needing an index.
-                    const commentsQuery = query(commentsCollection);
+                        // Set up the real-time comments listener after successful authentication
+                        const commentsCollection = collection(db, `artifacts/${appId}/public/data/comments`);
+                        // NOTE: Removed orderBy('timestamp', 'desc') to avoid needing an index.
+                        const commentsQuery = query(commentsCollection);
 
-                    onSnapshot(commentsQuery, (snapshot) => {
-                        const commentsList = document.getElementById('comments-list');
-                        commentsList.innerHTML = '';
-                        // Sort the comments in memory by timestamp
-                        const sortedComments = snapshot.docs.map(doc => ({...doc.data(), id: doc.id})).sort((a, b) => b.timestamp - a.timestamp);
-                        sortedComments.forEach((data) => {
-                            const commentElement = document.createElement('div');
-                            commentElement.classList.add('bg-white', 'p-4', 'rounded-lg', 'shadow-md');
-                            commentElement.innerHTML = `
-                                <div class="flex items-center mb-2">
-                                    <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold text-sm mr-3">
-                                        ${data.name.charAt(0).toUpperCase()}
+                        onSnapshot(commentsQuery, (snapshot) => {
+                            const commentsList = document.getElementById('comments-list');
+                            commentsList.innerHTML = '';
+                            // Sort the comments in memory by timestamp
+                            const sortedComments = snapshot.docs.map(doc => ({...doc.data(), id: doc.id})).sort((a, b) => b.timestamp - a.timestamp);
+                            sortedComments.forEach((data) => {
+                                const commentElement = document.createElement('div');
+                                commentElement.classList.add('bg-white', 'p-4', 'rounded-lg', 'shadow-md');
+                                commentElement.innerHTML = `
+                                    <div class="flex items-center mb-2">
+                                        <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold text-sm mr-3">
+                                            ${data.name.charAt(0).toUpperCase()}
+                                        </div>
+                                        <h4 class="font-bold text-gray-800">${data.name}</h4>
                                     </div>
-                                    <h4 class="font-bold text-gray-800">${data.name}</h4>
-                                </div>
-                                <p class="text-gray-600 mb-2">${data.comment}</p>
-                                <p class="text-xs text-gray-400">Dibuat pada: ${data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString() : 'Sekarang'}</p>
-                            `;
-                            commentsList.appendChild(commentElement);
+                                    <p class="text-gray-600 mb-2">${data.comment}</p>
+                                    <p class="text-xs text-gray-400">Dibuat pada: ${data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString() : 'Sekarang'}</p>
+                                `;
+                                commentsList.appendChild(commentElement);
+                            });
                         });
-                    });
 
-                    // Handle comment form submission only after userId is available
-                    const commentForm = document.getElementById('comment-form');
-                    commentForm.addEventListener('submit', async (e) => {
-                        e.preventDefault();
-                        const name = document.getElementById('comment-name').value;
-                        const comment = document.getElementById('comment-text').value;
+                        // Handle comment form submission only after userId is available
+                        const commentForm = document.getElementById('comment-form');
+                        commentForm.addEventListener('submit', async (e) => {
+                            e.preventDefault();
+                            const name = document.getElementById('comment-name').value;
+                            const comment = document.getElementById('comment-text').value;
 
-                        if (name && comment && userId) {
-                            const commentsCollection = collection(db, `artifacts/${appId}/public/data/comments`);
-                            
-                            try {
-                                await addDoc(commentsCollection, {
-                                    name: name,
-                                    comment: comment,
-                                    timestamp: serverTimestamp(),
-                                    userId: userId
-                                });
-                                console.log("Comment added successfully!");
-                                document.getElementById('comment-name').value = '';
-                                document.getElementById('comment-text').value = '';
-                            } catch (error) {
-                                console.error("Error adding comment:", error);
+                            if (name && comment && userId) {
+                                const commentsCollection = collection(db, `artifacts/${appId}/public/data/comments`);
+                                
+                                try {
+                                    await addDoc(commentsCollection, {
+                                        name: name,
+                                        comment: comment,
+                                        timestamp: serverTimestamp(),
+                                        userId: userId
+                                    });
+                                    console.log("Komentar berhasil ditambahkan!");
+                                    document.getElementById('comment-name').value = '';
+                                    document.getElementById('comment-text').value = '';
+                                } catch (error) {
+                                    console.error("Kesalahan saat menambahkan komentar:", error);
+                                }
+                            } else {
+                                console.error("Pengiriman komentar gagal: Nama, komentar, atau userId tidak ada.");
                             }
-                        } else {
-                            console.error("Comment submission failed: Name, comment, or userId is missing.");
-                        }
-                    });
-                } else {
-                    console.log("No user signed in. Signing in anonymously.");
-                    try {
-                        if (initialAuthToken) {
-                            await signInWithCustomToken(auth, initialAuthToken);
-                        } else {
-                            await signInAnonymously(auth);
-                        }
-                    } catch (error) {
-                        console.error("Error during initial sign-in:", error);
-                        // Fallback to anonymous sign-in in case of custom token failure
+                        });
+                    } else {
+                        console.log("Tidak ada pengguna yang masuk. Mencoba untuk masuk secara anonim.");
                         await signInAnonymously(auth);
+                    }
+                } catch (error) {
+                    if (error.code === 'auth/configuration-not-found') {
+                        console.error("Kesalahan otentikasi: Layanan Firebase Authentication belum diaktifkan di konsol Firebase Anda. Silakan aktifkan untuk menggunakan fitur ini.");
+                    } else {
+                        console.error("Kesalahan selama proses masuk awal:", error);
                     }
                 }
             });
         } else {
-            console.error("Firebase configuration is not available. Comments functionality will not work.");
+            console.error("Konfigurasi Firebase tidak tersedia. Fungsionalitas komentar tidak akan berfungsi.");
         }
     </script>
     
