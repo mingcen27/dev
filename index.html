@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NamaAplikasi | Tingkatkan Efisiensi Kerja Anda</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Ionicons for icons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    
+    <style>
+        /* Menggunakan font Inter sebagai font utama */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Latar belakang abu-abu muda */
+        }
+        /* Animasi fade-in sederhana */
+        .fade-in {
+            animation: fadeIn 1.2s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Styling untuk tombol Call-to-Action (CTA) */
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem 2rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .cta-button ion-icon {
+            margin-right: 0.75rem;
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- Header / Navigation Bar -->
+    <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold text-indigo-600">NamaAplikasi</a>
+            <div class="hidden md:flex space-x-8 items-center">
+                <a href="#fitur" class="text-gray-600 hover:text-indigo-600 transition duration-300">Fitur</a>
+                <a href="#preview" class="text-gray-600 hover:text-indigo-600 transition duration-300">Tampilan</a>
+                <a href="#testimoni" class="text-gray-600 hover:text-indigo-600 transition duration-300">Testimoni</a>
+                <a href="#kontak" class="text-gray-600 hover:text-indigo-600 transition duration-300">Kontak</a>
+            </div>
+            <!-- Tombol menu mobile dengan atribut aksesibilitas -->
+            <button id="mobile-menu-button" class="md:hidden text-gray-700" aria-controls="mobile-menu" aria-expanded="false">
+                <ion-icon name="menu-outline" class="text-3xl"></ion-icon>
+            </button>
+        </nav>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4">
+            <a href="#fitur" class="block py-2 text-gray-600 hover:text-indigo-600">Fitur</a>
+            <a href="#preview" class="block py-2 text-gray-600 hover:text-indigo-600">Tampilan</a>
+            <a href="#testimoni" class="block py-2 text-gray-600 hover:text-indigo-600">Testimoni</a>
+            <a href="#kontak" class="block py-2 text-gray-600 hover:text-indigo-600">Kontak</a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section: Bagian utama yang menyambut pengunjung -->
+        <section class="py-20 md:py-28 bg-white fade-in">
+            <div class="container mx-auto px-6 text-center">
+                <h1 class="text-4xl md:text-6xl font-bold leading-tight mb-4">Kerja Lebih Cerdas, Bukan Lebih Keras.</h1>
+                <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-10"><b>NamaAplikasi</b> adalah alat bantu yang Anda butuhkan untuk mengelola tugas, melacak progres, dan menyelesaikan pekerjaan lebih cepat.</p>
+                <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+                    <a href="#download-link-windows" class="cta-button bg-indigo-600 text-white hover:bg-indigo-700 transform hover:scale-105">
+                        <ion-icon name="logo-windows"></ion-icon>
+                        Unduh untuk Windows
+                    </a>
+                    <a href="#download-link-macos" class="cta-button bg-gray-800 text-white hover:bg-gray-900 transform hover:scale-105">
+                        <ion-icon name="logo-apple"></ion-icon>
+                        Unduh untuk macOS
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section: Menjelaskan fitur-fitur utama aplikasi -->
+        <section id="fitur" class="py-20">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold">Dirancang untuk Efisiensi Maksimal</h2>
+                    <p class="text-gray-600 mt-2">Fitur-fitur yang akan mengubah cara Anda bekerja.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Kartu Fitur 1 dengan efek hover yang lebih menarik -->
+                    <div class="bg-white p-8 rounded-xl shadow-lg text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
+                        <div class="bg-indigo-100 text-indigo-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
+                            <ion-icon name="flash-outline" class="text-3xl"></ion-icon>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">Atur Tugas Seketika</h3>
+                        <p class="text-gray-600">Kelola semua pekerjaan Anda dalam satu dasbor yang intuitif dan mudah digunakan.</p>
+                    </div>
+                    <!-- Kartu Fitur 2 -->
+                    <div class="bg-white p-8 rounded-xl shadow-lg text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
+                        <div class="bg-green-100 text-green-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
+                            <ion-icon name="timer-outline" class="text-3xl"></ion-icon>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">Hemat Waktu Berharga</h3>
+                        <p class="text-gray-600">Otomatiskan tugas-tugas repetitif dan fokus pada hal yang paling penting.</p>
+                    </div>
+                    <!-- Kartu Fitur 3 -->
+                    <div class="bg-white p-8 rounded-xl shadow-lg text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
+                        <div class="bg-blue-100 text-blue-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
+                            <ion-icon name="analytics-outline" class="text-3xl"></ion-icon>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">Lacak Progres Anda</h3>
+                        <p class="text-gray-600">Visualisasikan kemajuan proyek dengan laporan yang jelas dan mudah dipahami.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- App Preview Section: Menampilkan screenshot aplikasi -->
+        <section id="preview" class="py-20 bg-white">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold">Lihat Cara Kerjanya</h2>
+                    <p class="text-gray-600 mt-2">Antarmuka yang bersih dan fungsional, tanpa gangguan.</p>
+                </div>
+                <div class="bg-gray-800 p-4 rounded-xl shadow-2xl border border-gray-200">
+                     <img src="https://placehold.co/1200x800/e0e7ff/3730a3?text=Tampilan+Aplikasi+Anda" alt="Tampilan Aplikasi" class="rounded-lg w-full">
+                </div>
+            </div>
+        </section>
+        
+        <!-- Testimonials Section [BARU]: Menampilkan testimoni untuk membangun kepercayaan -->
+        <section id="testimoni" class="py-20">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold">Apa Kata Pengguna Kami</h2>
+                    <p class="text-gray-600 mt-2">Lihat bagaimana aplikasi kami membantu para profesional seperti Anda.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Testimoni 1 -->
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <p class="text-gray-600 italic mb-6">"Aplikasi ini benar-benar mengubah alur kerja saya. Sekarang saya bisa menyelesaikan lebih banyak pekerjaan dalam waktu yang lebih singkat. Sangat direkomendasikan!"</p>
+                        <div class="flex items-center">
+                            <img src="https://placehold.co/100x100/c7d2fe/3730a3?text=User" alt="Foto Pengguna 1" class="w-12 h-12 rounded-full mr-4">
+                            <div>
+                                <p class="font-semibold">Andi Pratama</p>
+                                <p class="text-sm text-gray-500">Manajer Proyek</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Testimoni 2 -->
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <p class="text-gray-600 italic mb-6">"Antarmukanya sangat bersih dan mudah digunakan. Saya tidak perlu waktu lama untuk beradaptasi. Fitur pelacakan progresnya adalah favorit saya."</p>
+                        <div class="flex items-center">
+                            <img src="https://placehold.co/100x100/c7d2fe/3730a3?text=User" alt="Foto Pengguna 2" class="w-12 h-12 rounded-full mr-4">
+                            <div>
+                                <p class="font-semibold">Citra Lestari</p>
+                                <p class="text-sm text-gray-500">Desainer Grafis Freelance</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Final CTA Section [BARU]: Ajakan terakhir untuk mengunduh -->
+        <section class="bg-indigo-600">
+            <div class="container mx-auto px-6 py-20 text-center">
+                <h2 class="text-3xl font-bold text-white mb-4">Siap untuk Bekerja Lebih Efisien?</h2>
+                <p class="text-indigo-200 max-w-2xl mx-auto mb-8">Unduh NamaAplikasi sekarang juga dan rasakan perbedaannya. Gratis untuk memulai.</p>
+                <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+                    <a href="#download-link-windows" class="cta-button bg-white text-indigo-600 hover:bg-gray-100 transform hover:scale-105">
+                        <ion-icon name="logo-windows"></ion-icon>
+                        Unduh untuk Windows
+                    </a>
+                    <a href="#download-link-macos" class="cta-button bg-gray-800 text-white hover:bg-gray-900 transform hover:scale-105">
+                        <ion-icon name="logo-apple"></ion-icon>
+                        Unduh untuk macOS
+                    </a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer: Informasi kontak dan hak cipta -->
+    <footer id="kontak" class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-6 text-center">
+            <h3 class="text-2xl font-semibold mb-4">Punya Pertanyaan atau Masukan?</h3>
+            <p class="max-w-xl mx-auto mb-8">Sebagai pengembang, saya sangat menghargai masukan dari Anda. Hubungi saya langsung melalui email.</p>
+            <a href="mailto:kontak@namaaplikasi.com" class="bg-indigo-600 text-white px-6 py-3 rounded-full hover:bg-indigo-700 transition duration-300">Kirim Email</a>
+            <div class="flex justify-center space-x-6 mt-10">
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300" title="Twitter"><ion-icon name="logo-twitter" class="text-2xl"></ion-icon></a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300" title="LinkedIn"><ion-icon name="logo-linkedin" class="text-2xl"></ion-icon></a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300" title="GitHub"><ion-icon name="logo-github" class="text-2xl"></ion-icon></a>
+            </div>
+            <p class="text-gray-500 mt-10 text-sm">&copy; 2025 NamaAplikasi. Dikembangkan dengan ❤️ oleh [Nama Anda].</p>
+        </div>
+    </footer>
+
+    <script>
+        // JavaScript untuk toggle menu mobile
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuButton.addEventListener('click', () => {
+            const isExpanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
+            mobileMenuButton.setAttribute('aria-expanded', !isExpanded);
+            mobileMenu.classList.toggle('hidden');
+        });
+    </script>
+</body>
+</html>
