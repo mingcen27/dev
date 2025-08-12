@@ -21,12 +21,12 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global variables provided by the Canvas environment
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
 
         // Initialize Firebase
         let app;
@@ -50,15 +50,17 @@
                         userIdElement.textContent = userId;
                     }
 
-                    // Set up the real-time comments listener
+                    // Set up the real-time comments listener after successful authentication
                     const commentsCollection = collection(db, `artifacts/${appId}/public/data/comments`);
-                    const commentsQuery = query(commentsCollection, orderBy('timestamp', 'desc'));
+                    // NOTE: Removed orderBy('timestamp', 'desc') to avoid needing an index.
+                    const commentsQuery = query(commentsCollection);
 
                     onSnapshot(commentsQuery, (snapshot) => {
                         const commentsList = document.getElementById('comments-list');
                         commentsList.innerHTML = '';
-                        snapshot.forEach((doc) => {
-                            const data = doc.data();
+                        // Sort the comments in memory by timestamp
+                        const sortedComments = snapshot.docs.map(doc => ({...doc.data(), id: doc.id})).sort((a, b) => b.timestamp - a.timestamp);
+                        sortedComments.forEach((data) => {
                             const commentElement = document.createElement('div');
                             commentElement.classList.add('bg-white', 'p-4', 'rounded-lg', 'shadow-md');
                             commentElement.innerHTML = `
@@ -74,38 +76,46 @@
                             commentsList.appendChild(commentElement);
                         });
                     });
+
+                    // Handle comment form submission only after userId is available
+                    const commentForm = document.getElementById('comment-form');
+                    commentForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        const name = document.getElementById('comment-name').value;
+                        const comment = document.getElementById('comment-text').value;
+
+                        if (name && comment && userId) {
+                            const commentsCollection = collection(db, `artifacts/${appId}/public/data/comments`);
+                            
+                            try {
+                                await addDoc(commentsCollection, {
+                                    name: name,
+                                    comment: comment,
+                                    timestamp: serverTimestamp(),
+                                    userId: userId
+                                });
+                                console.log("Comment added successfully!");
+                                document.getElementById('comment-name').value = '';
+                                document.getElementById('comment-text').value = '';
+                            } catch (error) {
+                                console.error("Error adding comment:", error);
+                            }
+                        } else {
+                            console.error("Comment submission failed: Name, comment, or userId is missing.");
+                        }
+                    });
                 } else {
                     console.log("No user signed in. Signing in anonymously.");
-                    if (initialAuthToken) {
-                        await signInWithCustomToken(auth, initialAuthToken);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                }
-            });
-
-            // Handle comment form submission
-            const commentForm = document.getElementById('comment-form');
-            commentForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const name = document.getElementById('comment-name').value;
-                const comment = document.getElementById('comment-text').value;
-
-                if (name && comment) {
-                    const commentsCollection = collection(db, `artifacts/${appId}/public/data/comments`);
-                    
                     try {
-                        await addDoc(commentsCollection, {
-                            name: name,
-                            comment: comment,
-                            timestamp: serverTimestamp(),
-                            userId: userId
-                        });
-                        console.log("Comment added successfully!");
-                        document.getElementById('comment-name').value = '';
-                        document.getElementById('comment-text').value = '';
+                        if (initialAuthToken) {
+                            await signInWithCustomToken(auth, initialAuthToken);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
                     } catch (error) {
-                        console.error("Error adding comment:", error);
+                        console.error("Error during initial sign-in:", error);
+                        // Fallback to anonymous sign-in in case of custom token failure
+                        await signInAnonymously(auth);
                     }
                 }
             });
