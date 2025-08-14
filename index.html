@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mingcen | Tingkatkan Efisiensi Kerja Anda</title>
+    <title>Mingcen | MCN27</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -20,7 +20,7 @@
     <!-- Firebase SDK - Firestore -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, serverTimestamp, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global variables provided by the Canvas environment
@@ -196,20 +196,11 @@
     <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
             <a href="#" class="text-2xl font-bold text-indigo-600">Mingcen</a>
-            <div class="hidden md:flex space-x-8 items-center">
-                <a href="#fitur" class="text-gray-600 hover:text-indigo-600 transition duration-300">Download</a>
+            <div class="flex space-x-8 items-center">
+                <a href="#fitur" class="text-gray-600 hover:text-indigo-600 transition duration-300">Fitur</a>
                 <a href="#kontak" class="text-gray-600 hover:text-indigo-600 transition duration-300">Kontak</a>
             </div>
-            <!-- Tombol menu mobile dengan atribut aksesibilitas -->
-            <button id="mobile-menu-button" class="md:hidden text-gray-700" aria-controls="mobile-menu" aria-expanded="false">
-                <ion-icon name="menu-outline" class="text-3xl"></ion-icon>
-            </button>
         </nav>
-        <!-- Mobile Menu -->
-        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4">
-            <a href="#fitur" class="block py-2 text-gray-600 hover:text-indigo-600">Download</a>
-            <a href="#kontak" class="block py-2 text-gray-600 hover:text-indigo-600">Kontak</a>
-        </div>
     </header>
 
     <!-- Main Content -->
@@ -221,9 +212,8 @@
                 <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-10"><b>Aplikasi</b> ini dapat membantu Anda untuk mengelola tugas, melacak progres, dan menyelesaikan pekerjaan lebih cepat.</p>
                 <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
                     <a href="#fitur" class="cta-button bg-indigo-600 text-white hover:bg-indigo-700 transform hover:scale-105">
-                        <!-- Ikon Windows diubah menjadi ikon unduhan cloud -->
-                        <ion-icon name="cloud-download-outline"></ion-icon>
-                        Download Aplikasinya Disini
+                        <ion-icon name="eye-outline"></ion-icon>
+                        Lihat Fitur Kami
                     </a>
                 </div>
             </div>
@@ -259,29 +249,40 @@
                             Unduh Aplikasi
                         </a>
                     </div>
-                    <!-- Kartu Fitur 3: Aplikasi Generator Berita Acara (Coming Soon) -->
+                    <!-- Kartu Fitur 3: Aplikasi Generator Berita Acara -->
                     <div class="bg-gray-200 p-8 rounded-xl shadow-lg text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
                         <div class="bg-gray-300 text-gray-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                             <ion-icon name="analytics-outline" class="text-3xl"></ion-icon>
                         </div>
-                        <h3 class="text-xl font-semibold mb-2 text-gray-600">Coming Soon</h3>
+                        <h3 class="text-xl font-semibold mb-2 text-gray-600">Aplikasi Generator Berita Acara</h3>
                         <p class="text-gray-500">Fitur ini sedang dalam pengembangan dan akan segera hadir.</p>
                         <button disabled class="card-button bg-gray-400 text-gray-200 cursor-not-allowed">
                             Segera Hadir
                         </button>
                     </div>
-                    <!-- Kartu Fitur 4: Aplikasi Pembuat Sarana Promosi -->
+                    <!-- Kartu Fitur 4: Aplikasi Pembuat Sarana Promosi A4 -->
                     <div class="bg-white p-8 rounded-xl shadow-lg text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
                         <div class="bg-indigo-100 text-indigo-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                             <ion-icon name="megaphone-outline" class="text-3xl"></ion-icon>
                         </div>
-                        <h3 class="text-xl font-semibold mb-2">Aplikasi Pembuat Sarana Promosi</h3>
-                        <p class="text-gray-600">Buat sarana promosi dengan cepat dan efisien untuk kebutuhan bisnis Anda.</p>
+                        <h3 class="text-xl font-semibold mb-2">Aplikasi Pembuat Sarana Promosi A4</h3>
+                        <p class="text-gray-600">Aplikasi pembuat sarana promosi dengan tampilan 4x4.</p>
                         <a href="GenerateSaranaPromosiA4.html" class="card-button bg-indigo-600 text-white hover:bg-indigo-700 transform hover:scale-105">
                             Buka Aplikasi
                         </a>
                     </div>
-                    <!-- Kartu Fitur 5: Coming Soon -->
+                    <!-- Kartu Fitur 5: Aplikasi Pembuat Sarana Promosi Wobler -->
+                    <div class="bg-white p-8 rounded-xl shadow-lg text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
+                        <div class="bg-indigo-100 text-indigo-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
+                            <ion-icon name="brush-outline" class="text-3xl"></ion-icon>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2 text-gray-800">Aplikasi Pembuat Sarana Promosi Wobler</h3>
+                        <p class="text-gray-600">Aplikasi pembuat sarana promosi 6x6 yang mudah digunakan dan efesien.</p>
+                        <a href="GenerateSaranaPromosiA46x6.html" class="card-button bg-indigo-600 text-white hover:bg-indigo-700 transform hover:scale-105">
+                            Buka Aplikasi
+                        </a>
+                    </div>
+                    <!-- Kartu Fitur 6: Coming Soon -->
                     <div class="bg-gray-200 p-8 rounded-xl shadow-lg text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
                         <div class="bg-gray-300 text-gray-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                             <ion-icon name="construct-outline" class="text-3xl"></ion-icon>
@@ -347,4 +348,3 @@
     </footer>
 </body>
 </html>
-
