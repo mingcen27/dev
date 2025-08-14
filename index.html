@@ -2,9 +2,8 @@
 <html lang="id" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
-    <!-- Mengubah viewport agar responsif di semua perangkat -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mingcen | Mingcen27</title>
+    <!-- Viewport meta tag dihapus untuk memaksakan tampilan desktop di perangkat mobile -->
+    <title>Mingcen | MCN27</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -28,7 +27,6 @@
         // Menjalankan skrip setelah seluruh konten halaman dimuat
         document.addEventListener('DOMContentLoaded', () => {
             // --- Konfigurasi Firebase ---
-            // Konfigurasi fallback jika variabel environment tidak tersedia
             const fallbackFirebaseConfig = {
                 apiKey: "AIzaSyA21JXWHE7AJm7EWDKXgbsmvm8BgmP-pHM",
                 authDomain: "mingcen-52b65.firebaseapp.com",
@@ -41,7 +39,6 @@
 
             let firebaseConfig;
 
-            // Coba gunakan konfigurasi dari environment; jika tidak ada, gunakan fallback
             if (typeof __firebase_config !== 'undefined' && __firebase_config.length > 2) {
                 try {
                     firebaseConfig = JSON.parse(__firebase_config);
@@ -55,17 +52,14 @@
                 firebaseConfig = fallbackFirebaseConfig;
             }
 
-            // Variabel global dari environment Canvas
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
             const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-            // Inisialisasi variabel Firebase
             let app;
             let db;
             let auth;
             let userId;
 
-            // Fungsi untuk menampilkan pesan dalam modal kustom
             function showMessage(title, message) {
                 const modal = document.getElementById('message-modal');
                 const modalTitle = document.getElementById('modal-title');
@@ -78,29 +72,30 @@
                 }
             }
 
-            // Fungsi untuk menutup modal pesan
             function closeModal() {
                 const modal = document.getElementById('message-modal');
                 if (modal) {
                     modal.classList.add('hidden');
                 }
             }
-            window.closeModal = closeModal; // Agar bisa dipanggil dari HTML
+            window.closeModal = closeModal;
 
-            // Fungsi untuk menambah counter view
             const incrementViewCount = async (featureId) => {
                 if (!db || !featureId) return;
                 const viewRef = doc(db, `artifacts/${appId}/public/data/views`, featureId);
                 try {
-                    // Coba update, jika dokumen belum ada, akan gagal dan masuk ke blok catch
                     await updateDoc(viewRef, { count: increment(1) });
+                     console.log(`View count for ${featureId} incremented.`);
                 } catch (error) {
-                    // Jika dokumen belum ada, buat dokumen baru dengan count = 1
-                    await setDoc(viewRef, { count: 1 });
+                    if (error.code === 'not-found') {
+                        await setDoc(viewRef, { count: 1 });
+                        console.log(`View count for ${featureId} initialized.`);
+                    } else {
+                        console.error(`Failed to increment view count for ${featureId}:`, error);
+                    }
                 }
             };
 
-            // Inisialisasi Firebase jika konfigurasi valid
             if (firebaseConfig && Object.keys(firebaseConfig).length > 0) {
                 try {
                     app = initializeApp(firebaseConfig);
@@ -120,10 +115,8 @@
                         userId = user.uid;
                         console.log("Pengguna berhasil masuk:", userId);
 
-                        // [NEW] Lacak fitur yang sudah diklik dalam sesi ini untuk mencegah penambahan view berulang
                         const clickedFeatures = new Set();
 
-                        // Aktifkan form komentar
                         const commentSubmitButton = document.querySelector('#comment-form button[type="submit"]');
                         if (commentSubmitButton) {
                             commentSubmitButton.disabled = false;
@@ -132,7 +125,6 @@
                             commentSubmitButton.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
                         }
 
-                        // Listener untuk view counter
                         const viewsCollection = collection(db, `artifacts/${appId}/public/data/views`);
                         onSnapshot(viewsCollection, (snapshot) => {
                             snapshot.docs.forEach(doc => {
@@ -143,57 +135,52 @@
                             });
                         });
 
-                        // [FIXED] Listener untuk tombol unduh/buka aplikasi
                         document.querySelectorAll('.card-button[data-feature-id]').forEach(button => {
                             button.addEventListener('click', (e) => {
                                 const featureId = e.currentTarget.dataset.featureId;
-                                
-                                // Hanya tambah view count jika fitur ini belum diklik dalam sesi ini
                                 if (featureId && !clickedFeatures.has(featureId)) {
-                                    // Panggil fungsi tanpa 'await' agar tidak memblokir navigasi.
                                     incrementViewCount(featureId);
-                                    // Tandai fitur ini sebagai sudah diklik
                                     clickedFeatures.add(featureId);
                                 }
-                                // Browser akan melanjutkan ke href dari link secara otomatis.
                             });
                         });
                         
-                        // Listener untuk komentar
+                        // [FIXED] Listener untuk komentar dengan layout baru yang lebih ringkas
                         const commentsQuery = query(collection(db, `artifacts/${appId}/public/data/comments`));
                         onSnapshot(commentsQuery, (snapshot) => {
                             const commentsList = document.getElementById('comments-list');
                             if (!commentsList) return;
-                            commentsList.innerHTML = ''; // Kosongkan daftar sebelum mengisi ulang
+                            commentsList.innerHTML = ''; 
                             const sortedComments = snapshot.docs
                                 .map(doc => ({...doc.data(), id: doc.id}))
                                 .sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
                             
                             sortedComments.forEach((data) => {
                                 const commentElement = document.createElement('div');
-                                commentElement.classList.add('bg-white', 'p-4', 'rounded-lg', 'shadow-md', 'mb-4', 'break-words', 'whitespace-pre-wrap');
+                                commentElement.classList.add('bg-white', 'p-3', 'rounded-lg', 'shadow-sm', 'mb-3');
                                 const isAuthor = data.userId === userId;
                                 const deleteButtonHtml = isAuthor ? `
-                                    <button class="delete-comment-btn text-red-500 hover:text-red-700" data-id="${data.id}" title="Hapus">
+                                    <button class="delete-comment-btn text-gray-400 hover:text-red-600 transition-colors" data-id="${data.id}" title="Hapus">
                                         <ion-icon name="trash-outline" class="pointer-events-none"></ion-icon>
                                     </button>` : '';
                                 commentElement.innerHTML = `
-                                    <div class="flex items-center justify-between mb-2">
-                                        <div class="flex items-center min-w-0">
-                                            <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold text-sm mr-3 flex-shrink-0">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div class="w-9 h-9 rounded-full bg-indigo-500 flex items-center justify-center text-white font-semibold text-base mr-3 flex-shrink-0">
                                                 ${data.name ? data.name.charAt(0).toUpperCase() : '?'}
                                             </div>
-                                            <h4 class="font-bold text-gray-800 truncate">${data.name || 'Anonim'}</h4>
+                                            <div>
+                                                <h4 class="font-semibold text-sm text-gray-800">${data.name || 'Anonim'}</h4>
+                                                <p class="text-xs text-gray-400">${data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Baru saja'}</p>
+                                            </div>
                                         </div>
                                         ${deleteButtonHtml}
                                     </div>
-                                    <p class="text-gray-600 mb-2">${data.comment}</p>
-                                    <p class="text-xs text-gray-400">${data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString('id-ID') : 'Baru saja'}</p>`;
+                                    <p class="text-gray-700 text-sm mt-2 pl-12">${data.comment}</p>`;
                                 commentsList.appendChild(commentElement);
                             });
                         });
                         
-                        // Listener untuk hapus komentar
                         document.getElementById('comments-list')?.addEventListener('click', async (e) => {
                             const deleteButton = e.target.closest('.delete-comment-btn');
                             if (deleteButton) {
@@ -206,7 +193,6 @@
                             }
                         });
 
-                        // Listener untuk form komentar
                         document.getElementById('comment-form')?.addEventListener('submit', async (e) => {
                             e.preventDefault();
                             const nameInput = document.getElementById('comment-name');
@@ -258,7 +244,7 @@
     <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
             <a href="#" class="text-2xl font-bold text-indigo-600">Mingcen</a>
-            <div class="hidden md:flex space-x-8 items-center">
+            <div class="flex space-x-8 items-center">
                 <a href="#fitur" class="text-gray-600 hover:text-indigo-600 transition duration-300">Fitur</a>
                 <a href="#comments" class="text-gray-600 hover:text-indigo-600 transition duration-300">Komentar</a>
                 <a href="#kontak" class="text-gray-600 hover:text-indigo-600 transition duration-300">Kontak</a>
@@ -379,7 +365,8 @@
                             Memuat...
                         </button>
                     </form>
-                    <div id="comments-list" class="space-y-4 max-h-96 overflow-y-auto pr-2">
+                    <!-- [FIXED] Tinggi maksimal list komentar dikurangi -->
+                    <div id="comments-list" class="space-y-3 max-h-72 overflow-y-auto pr-2">
                         <!-- Komentar akan dimuat di sini -->
                     </div>
                 </div>
