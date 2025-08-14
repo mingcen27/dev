@@ -25,17 +25,8 @@
 
         // Global variables provided by the Canvas environment
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
-        // Firebase configuration provided by the user
-        const firebaseConfig = {
-            apiKey: "AIzaSyA21JXWHE7AJm7EWDKXgbsmvm8BgmP-pHM",
-            authDomain: "mingcen-52b65.firebaseapp.com",
-            projectId: "mingcen-52b65",
-            storageBucket: "mingcen-52b65.firebasestorage.app",
-            messagingSenderId: "204252909058",
-            appId: "1:204252909058:web:c0ba89b90b8a2fe1e4211b",
-            measurementId: "G-EM8DX6B4EL"
-        };
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         // Initialize Firebase
         let app;
@@ -51,7 +42,13 @@
             // Sign in with the provided token or anonymously
             onAuthStateChanged(auth, async (user) => {
                 try {
-                    if (user) {
+                    if (!user) {
+                        if (initialAuthToken) {
+                            await signInWithCustomToken(auth, initialAuthToken);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    } else {
                         userId = user.uid;
                         console.log("Pengguna berhasil masuk:", userId);
 
@@ -67,6 +64,13 @@
                             sortedComments.forEach((data) => {
                                 const commentElement = document.createElement('div');
                                 commentElement.classList.add('bg-white', 'p-4', 'rounded-lg', 'shadow-md', 'mb-4');
+                                // Determine if the current user is the author of the comment
+                                const isAuthor = data.userId === userId;
+                                const deleteButtonHtml = isAuthor ? `
+                                    <button class="delete-comment-btn text-red-500 hover:text-red-700 transition duration-300" data-id="${data.id}" title="Hapus Komentar">
+                                        <ion-icon name="trash-outline"></ion-icon>
+                                    </button>
+                                ` : '';
                                 commentElement.innerHTML = `
                                     <div class="flex items-center justify-between mb-2">
                                         <div class="flex items-center">
@@ -75,9 +79,7 @@
                                             </div>
                                             <h4 class="font-bold text-gray-800">${data.name}</h4>
                                         </div>
-                                        <button class="delete-comment-btn text-red-500 hover:text-red-700 transition duration-300" data-id="${data.id}" title="Hapus Komentar">
-                                            <ion-icon name="trash-outline"></ion-icon>
-                                        </button>
+                                        ${deleteButtonHtml}
                                     </div>
                                     <p class="text-gray-600 mb-2">${data.comment}</p>
                                     <p class="text-xs text-gray-400">Dibuat pada: ${data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString() : 'Sekarang'}</p>
@@ -133,9 +135,6 @@
                                 console.error("Pengiriman komentar gagal: Nama, komentar, atau userId tidak ada.");
                             }
                         });
-                    } else {
-                        console.log("Tidak ada pengguna yang masuk. Mencoba untuk masuk secara anonim.");
-                        await signInAnonymously(auth);
                     }
                 } catch (error) {
                     if (error.code === 'auth/configuration-not-found') {
@@ -271,16 +270,16 @@
                             Segera Hadir
                         </button>
                     </div>
-                    <!-- Kartu Fitur 4: Aplikasi Pembuat Sarana Promosi (Coming Soon) -->
-                    <div class="bg-gray-200 p-8 rounded-xl shadow-lg text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
-                        <div class="bg-gray-300 text-gray-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
+                    <!-- Kartu Fitur 4: Aplikasi Pembuat Sarana Promosi -->
+                    <div class="bg-white p-8 rounded-xl shadow-lg text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
+                        <div class="bg-indigo-100 text-indigo-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                             <ion-icon name="megaphone-outline" class="text-3xl"></ion-icon>
                         </div>
-                        <h3 class="text-xl font-semibold mb-2 text-gray-600">Coming Soon</h3>
-                        <p class="text-gray-500">Fitur ini sedang dalam pengembangan dan akan segera hadir.</p>
-                        <button disabled class="card-button bg-gray-400 text-gray-200 cursor-not-allowed">
-                            Segera Hadir
-                        </button>
+                        <h3 class="text-xl font-semibold mb-2">Aplikasi Pembuat Sarana Promosi</h3>
+                        <p class="text-gray-600">Buat sarana promosi dengan cepat dan efisien untuk kebutuhan bisnis Anda.</p>
+                        <a href="assets-1/GenerateSaranaPromosiA4.html" class="card-button bg-indigo-600 text-white hover:bg-indigo-700 transform hover:scale-105">
+                            Unduh Aplikasi
+                        </a>
                     </div>
                     <!-- Kartu Fitur 5: Coming Soon -->
                     <div class="bg-gray-200 p-8 rounded-xl shadow-lg text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
@@ -348,4 +347,3 @@
     </footer>
 </body>
 </html>
-
