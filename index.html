@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <!-- Mengubah viewport agar responsif di semua perangkat -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mingcen | MCN27</title>
+    <title>Mingcen | MCN27i</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -30,7 +30,7 @@
         const firebaseConfig = JSON.parse(__firebase_config);
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // Initialize Firebase variables
+        // Inisialisasi variabel Firebase di luar onAuthStateChanged
         let app;
         let db;
         let auth;
@@ -52,10 +52,14 @@
             const modal = document.getElementById('message-modal');
             modal.classList.add('hidden');
         }
+        window.closeModal = closeModal; // Agar bisa dipanggil dari HTML
 
         // Fungsi untuk membuat atau memperbarui dokumen dengan counter yang di-increment
         const incrementViewCount = async (featureId) => {
-            if (!db || !featureId) return;
+            if (!db || !featureId) {
+                console.error("Firebase atau featureId tidak tersedia.");
+                return;
+            }
 
             // Menggunakan koleksi 'views' publik untuk melacak jumlah unduhan
             const viewRef = doc(db, `artifacts/${appId}/public/data/views`, featureId);
@@ -99,6 +103,15 @@
                         userId = user.uid;
                         console.log("Pengguna berhasil masuk:", userId);
 
+                        // Setelah autentikasi berhasil, aktifkan tombol komentar
+                        const commentSubmitButton = document.querySelector('#comment-form button[type="submit"]');
+                        if (commentSubmitButton) {
+                            commentSubmitButton.disabled = false;
+                            commentSubmitButton.textContent = 'Kirim Komentar';
+                            commentSubmitButton.classList.remove('bg-gray-400', 'cursor-not-allowed');
+                            commentSubmitButton.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+                        }
+
                         // --- LOGIKA VIEW COUNTER (REAL-TIME) ---
                         const viewsCollection = collection(db, `artifacts/${appId}/public/data/views`);
                         const viewsQuery = query(viewsCollection);
@@ -118,14 +131,17 @@
 
                         // Event listener untuk semua tombol unduh agar menambah jumlah tampilan saat diklik
                         document.querySelectorAll('.card-button').forEach(button => {
-                            button.addEventListener('click', (e) => {
+                            // Menghapus listener lama untuk mencegah duplikasi
+                            const newButton = button.cloneNode(true);
+                            button.parentNode.replaceChild(newButton, button);
+                            newButton.addEventListener('click', async (e) => { // Perbaikan: Tambahkan 'async' di sini
                                 // Mencegah perilaku default (navigasi) agar kita bisa memproses klik terlebih dahulu
-                                e.preventDefault(); 
+                                e.preventDefault();
                                 const featureId = e.currentTarget.dataset.featureId;
                                 const originalHref = e.currentTarget.href;
                                 if (featureId && originalHref) {
-                                    // Menambah jumlah tampilan di Firestore
-                                    incrementViewCount(featureId);
+                                    // Perbaikan: Await pemanggilan fungsi asinkron
+                                    await incrementViewCount(featureId);
                                     // Mengarahkan pengguna ke tautan asli setelah update terkirim
                                     window.location.href = originalHref;
                                 }
@@ -408,8 +424,9 @@
                             <label for="comment-text" class="block text-gray-700 font-semibold mb-2">Komentar</label>
                             <textarea id="comment-text" name="comment" rows="4" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Tuliskan komentar Anda di sini..." required></textarea>
                         </div>
-                        <button type="submit" class="w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300">
-                            Kirim Komentar
+                        <!-- Perbaikan: Tambahkan 'disabled' dan gaya awal agar tombol tidak dapat diklik sebelum otentikasi selesai -->
+                        <button type="submit" disabled class="w-full bg-gray-400 text-gray-200 font-semibold py-2 px-4 rounded-lg cursor-not-allowed transition duration-300">
+                            Memuat...
                         </button>
                     </form>
                     
