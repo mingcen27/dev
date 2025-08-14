@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <!-- Mengubah viewport agar responsif di semua perangkat -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mingcen | MCN27</title>
+    <title>Mingcen | Mingcen27</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -120,6 +120,9 @@
                         userId = user.uid;
                         console.log("Pengguna berhasil masuk:", userId);
 
+                        // [NEW] Lacak fitur yang sudah diklik dalam sesi ini untuk mencegah penambahan view berulang
+                        const clickedFeatures = new Set();
+
                         // Aktifkan form komentar
                         const commentSubmitButton = document.querySelector('#comment-form button[type="submit"]');
                         if (commentSubmitButton) {
@@ -143,14 +146,14 @@
                         // [FIXED] Listener untuk tombol unduh/buka aplikasi
                         document.querySelectorAll('.card-button[data-feature-id]').forEach(button => {
                             button.addEventListener('click', (e) => {
-                                // Jangan mencegah aksi default link (e.preventDefault()),
-                                // agar link tetap bisa dibuka secara normal.
-                                // Cukup panggil fungsi untuk menambah view count di latar belakang.
                                 const featureId = e.currentTarget.dataset.featureId;
-                                if (featureId) {
+                                
+                                // Hanya tambah view count jika fitur ini belum diklik dalam sesi ini
+                                if (featureId && !clickedFeatures.has(featureId)) {
                                     // Panggil fungsi tanpa 'await' agar tidak memblokir navigasi.
-                                    // Ini adalah pendekatan "fire-and-forget".
                                     incrementViewCount(featureId);
+                                    // Tandai fitur ini sebagai sudah diklik
+                                    clickedFeatures.add(featureId);
                                 }
                                 // Browser akan melanjutkan ke href dari link secara otomatis.
                             });
