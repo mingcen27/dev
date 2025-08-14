@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <!-- Mengubah viewport agar responsif di semua perangkat -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mingcen27 | MCN27</title>
+    <title>Mingcen | MCN27</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -27,9 +27,36 @@
 
         // Menjalankan skrip setelah seluruh konten halaman dimuat
         document.addEventListener('DOMContentLoaded', () => {
-            // Global variables provided by the Canvas environment
+            // --- Konfigurasi Firebase ---
+            // Konfigurasi fallback jika variabel environment tidak tersedia
+            const fallbackFirebaseConfig = {
+                apiKey: "AIzaSyA21JXWHE7AJm7EWDKXgbsmvm8BgmP-pHM",
+                authDomain: "mingcen-52b65.firebaseapp.com",
+                projectId: "mingcen-52b65",
+                storageBucket: "mingcen-52b65.appspot.com", // Format standar untuk storage bucket
+                messagingSenderId: "204252909058",
+                appId: "1:204252909058:web:f0f00f46de383b8fe4211b",
+                measurementId: "G-2QYEZ1GM2D"
+            };
+
+            let firebaseConfig;
+
+            // Coba gunakan konfigurasi dari environment; jika tidak ada, gunakan fallback
+            if (typeof __firebase_config !== 'undefined' && __firebase_config.length > 2) {
+                try {
+                    firebaseConfig = JSON.parse(__firebase_config);
+                    console.log("Menggunakan konfigurasi Firebase dari environment.");
+                } catch (e) {
+                    console.warn("Gagal mem-parsing __firebase_config, menggunakan konfigurasi fallback.", e);
+                    firebaseConfig = fallbackFirebaseConfig;
+                }
+            } else {
+                console.log("Variabel __firebase_config tidak ditemukan, menggunakan konfigurasi fallback.");
+                firebaseConfig = fallbackFirebaseConfig;
+            }
+
+            // Variabel global dari environment Canvas
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-            const firebaseConfigString = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
             const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
             // Inisialisasi variabel Firebase
@@ -60,233 +87,160 @@
             }
             window.closeModal = closeModal; // Agar bisa dipanggil dari HTML
 
-            // Fungsi untuk membuat atau memperbarui dokumen dengan counter yang di-increment
+            // Fungsi untuk menambah counter view
             const incrementViewCount = async (featureId) => {
-                if (!db || !featureId) {
-                    console.error("Firebase atau featureId tidak tersedia.");
-                    return;
-                }
-
-                // Menggunakan koleksi 'views' publik untuk melacak jumlah unduhan
+                if (!db || !featureId) return;
                 const viewRef = doc(db, `artifacts/${appId}/public/data/views`, featureId);
                 try {
-                    // Secara atomik (aman dari race condition) menambah jumlah tampilan sebanyak 1
-                    await updateDoc(viewRef, {
-                        count: increment(1)
-                    });
-                    console.log(`View count for ${featureId} incremented successfully!`);
+                    await updateDoc(viewRef, { count: increment(1) });
                 } catch (error) {
-                    // Jika dokumen belum ada, buat dokumen baru dengan hitungan awal 1
-                    console.warn(`Document for ${featureId} not found. Attempting to create new document.`);
-                    try {
-                        await setDoc(viewRef, {
-                            count: 1
-                        });
-                        console.log(`New view document for ${featureId} created successfully!`);
-                    } catch (createError) {
-                        console.error("Error creating new view document:", createError);
-                    }
+                    await setDoc(viewRef, { count: 1 });
                 }
             };
 
-            // Inisialisasi Firebase jika konfigurasi tersedia
-            try {
-                const firebaseConfig = JSON.parse(firebaseConfigString);
-                if (firebaseConfig && Object.keys(firebaseConfig).length > 0) {
+            // Inisialisasi Firebase jika konfigurasi valid
+            if (firebaseConfig && Object.keys(firebaseConfig).length > 0) {
+                try {
                     app = initializeApp(firebaseConfig);
                     db = getFirestore(app);
                     auth = getAuth(app);
                     
-                    // Mengatur listener untuk perubahan status otentikasi
                     onAuthStateChanged(auth, async (user) => {
-                        try {
-                            if (!user) {
-                                // Masuk dengan token kustom atau secara anonim jika tidak ada pengguna
-                                if (initialAuthToken) {
-                                    await signInWithCustomToken(auth, initialAuthToken);
-                                } else {
-                                    await signInAnonymously(auth);
+                        if (!user) {
+                            if (initialAuthToken) {
+                                await signInWithCustomToken(auth, initialAuthToken);
+                            } else {
+                                await signInAnonymously(auth);
+                            }
+                            return;
+                        }
+                        
+                        userId = user.uid;
+                        console.log("Pengguna berhasil masuk:", userId);
+
+                        // Aktifkan form komentar
+                        const commentSubmitButton = document.querySelector('#comment-form button[type="submit"]');
+                        if (commentSubmitButton) {
+                            commentSubmitButton.disabled = false;
+                            commentSubmitButton.textContent = 'Kirim Komentar';
+                            commentSubmitButton.classList.remove('bg-gray-400', 'cursor-not-allowed');
+                            commentSubmitButton.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+                        }
+
+                        // Listener untuk view counter
+                        const viewsCollection = collection(db, `artifacts/${appId}/public/data/views`);
+                        onSnapshot(viewsCollection, (snapshot) => {
+                            snapshot.docs.forEach(doc => {
+                                const viewCounterElement = document.getElementById(`views-${doc.id}`);
+                                if (viewCounterElement) {
+                                    viewCounterElement.textContent = `${doc.data().count || 0} views`;
+                                }
+                            });
+                        });
+
+                        // Listener untuk tombol unduh
+                        document.querySelectorAll('.card-button[data-feature-id]').forEach(button => {
+                            const newButton = button.cloneNode(true);
+                            button.parentNode.replaceChild(newButton, button);
+                            newButton.addEventListener('click', async (e) => {
+                                e.preventDefault();
+                                const featureId = e.currentTarget.dataset.featureId;
+                                await incrementViewCount(featureId);
+                                window.location.href = e.currentTarget.href;
+                            });
+                        });
+                        
+                        // Listener untuk komentar
+                        const commentsCollection = collection(db, `artifacts/${appId}/public/data/comments`);
+                        onSnapshot(commentsCollection, (snapshot) => {
+                            const commentsList = document.getElementById('comments-list');
+                            if (!commentsList) return;
+                            commentsList.innerHTML = '';
+                            const sortedComments = snapshot.docs
+                                .map(doc => ({...doc.data(), id: doc.id}))
+                                .sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                            
+                            sortedComments.forEach((data) => {
+                                const commentElement = document.createElement('div');
+                                commentElement.classList.add('bg-white', 'p-4', 'rounded-lg', 'shadow-md', 'mb-4', 'break-words', 'whitespace-pre-wrap');
+                                const isAuthor = data.userId === userId;
+                                const deleteButtonHtml = isAuthor ? `
+                                    <button class="delete-comment-btn text-red-500 hover:text-red-700" data-id="${data.id}" title="Hapus">
+                                        <ion-icon name="trash-outline" class="pointer-events-none"></ion-icon>
+                                    </button>` : '';
+                                commentElement.innerHTML = `
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center min-w-0">
+                                            <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold text-sm mr-3 flex-shrink-0">
+                                                ${data.name ? data.name.charAt(0).toUpperCase() : '?'}
+                                            </div>
+                                            <h4 class="font-bold text-gray-800 truncate">${data.name || 'Anonim'}</h4>
+                                        </div>
+                                        ${deleteButtonHtml}
+                                    </div>
+                                    <p class="text-gray-600 mb-2">${data.comment}</p>
+                                    <p class="text-xs text-gray-400">${data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString('id-ID') : 'Baru saja'}</p>`;
+                                commentsList.appendChild(commentElement);
+                            });
+                        });
+                        
+                        // Listener untuk hapus komentar
+                        document.getElementById('comments-list')?.addEventListener('click', async (e) => {
+                            const deleteButton = e.target.closest('.delete-comment-btn');
+                            if (deleteButton) {
+                                const commentId = deleteButton.dataset.id;
+                                try {
+                                    await deleteDoc(doc(db, `artifacts/${appId}/public/data/comments`, commentId));
+                                } catch (error) {
+                                    showMessage('Gagal', 'Gagal menghapus komentar.');
+                                }
+                            }
+                        });
+
+                        // Listener untuk form komentar
+                        document.getElementById('comment-form')?.addEventListener('submit', async (e) => {
+                            e.preventDefault();
+                            const nameInput = document.getElementById('comment-name');
+                            const commentInput = document.getElementById('comment-text');
+                            if (nameInput.value.trim() && commentInput.value.trim()) {
+                                try {
+                                    await addDoc(collection(db, `artifacts/${appId}/public/data/comments`), {
+                                        name: nameInput.value.trim(),
+                                        comment: commentInput.value.trim(),
+                                        timestamp: serverTimestamp(),
+                                        userId: userId
+                                    });
+                                    nameInput.value = '';
+                                    commentInput.value = '';
+                                } catch (error) {
+                                    showMessage('Gagal', 'Gagal mengirim komentar.');
                                 }
                             } else {
-                                userId = user.uid;
-                                console.log("Pengguna berhasil masuk:", userId);
-
-                                // Setelah autentikasi berhasil, aktifkan tombol komentar
-                                const commentSubmitButton = document.querySelector('#comment-form button[type="submit"]');
-                                if (commentSubmitButton) {
-                                    commentSubmitButton.disabled = false;
-                                    commentSubmitButton.textContent = 'Kirim Komentar';
-                                    commentSubmitButton.classList.remove('bg-gray-400', 'cursor-not-allowed');
-                                    commentSubmitButton.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
-                                }
-
-                                // --- LOGIKA VIEW COUNTER (REAL-TIME) ---
-                                const viewsCollection = collection(db, `artifacts/${appId}/public/data/views`);
-                                onSnapshot(viewsCollection, (snapshot) => {
-                                    snapshot.docs.forEach(doc => {
-                                        const data = doc.data();
-                                        const featureId = doc.id;
-                                        const viewCounterElement = document.getElementById(`views-${featureId}`);
-                                        if (viewCounterElement) {
-                                            viewCounterElement.textContent = `${data.count || 0} views`;
-                                        }
-                                    });
-                                });
-
-                                // Event listener untuk semua tombol unduh agar menambah jumlah tampilan saat diklik
-                                document.querySelectorAll('.card-button[data-feature-id]').forEach(button => {
-                                    // Menghapus listener lama untuk mencegah duplikasi
-                                    const newButton = button.cloneNode(true);
-                                    button.parentNode.replaceChild(newButton, button);
-                                    
-                                    newButton.addEventListener('click', async (e) => {
-                                        e.preventDefault();
-                                        const featureId = e.currentTarget.dataset.featureId;
-                                        const originalHref = e.currentTarget.href;
-                                        if (featureId && originalHref) {
-                                            await incrementViewCount(featureId);
-                                            // Mengarahkan pengguna ke tautan asli setelah update terkirim
-                                            window.location.href = originalHref;
-                                        }
-                                    });
-                                });
-                                
-                                // --- LOGIKA KOMENTAR (REAL-TIME) ---
-                                const commentsCollection = collection(db, `artifacts/${appId}/public/data/comments`);
-                                onSnapshot(commentsCollection, (snapshot) => {
-                                    const commentsList = document.getElementById('comments-list');
-                                    if (!commentsList) return;
-                                    commentsList.innerHTML = ''; // Kosongkan daftar sebelum memuat ulang
-                                    
-                                    const sortedComments = snapshot.docs
-                                        .map(doc => ({...doc.data(), id: doc.id}))
-                                        .sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
-                                    
-                                    sortedComments.forEach((data) => {
-                                        const commentElement = document.createElement('div');
-                                        commentElement.classList.add('bg-white', 'p-4', 'rounded-lg', 'shadow-md', 'mb-4', 'break-words', 'whitespace-pre-wrap');
-                                        const isAuthor = data.userId === userId;
-                                        const deleteButtonHtml = isAuthor ? `
-                                            <button class="delete-comment-btn text-red-500 hover:text-red-700 transition duration-300" data-id="${data.id}" title="Hapus Komentar">
-                                                <ion-icon name="trash-outline" class="pointer-events-none"></ion-icon>
-                                            </button>
-                                        ` : '';
-                                        commentElement.innerHTML = `
-                                            <div class="flex items-center justify-between mb-2">
-                                                <div class="flex items-center">
-                                                    <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold text-sm mr-3 flex-shrink-0">
-                                                        ${data.name ? data.name.charAt(0).toUpperCase() : '?'}
-                                                    </div>
-                                                    <h4 class="font-bold text-gray-800 truncate">${data.name || 'Anonim'}</h4>
-                                                </div>
-                                                ${deleteButtonHtml}
-                                            </div>
-                                            <p class="text-gray-600 mb-2">${data.comment}</p>
-                                            <p class="text-xs text-gray-400">Dibuat pada: ${data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString('id-ID') : 'Baru saja'}</p>
-                                        `;
-                                        commentsList.appendChild(commentElement);
-                                    });
-                                });
-                                
-                                // Event listener untuk menghapus komentar (delegasi event)
-                                document.getElementById('comments-list')?.addEventListener('click', async (e) => {
-                                    const deleteButton = e.target.closest('.delete-comment-btn');
-                                    if (deleteButton) {
-                                        const commentId = deleteButton.dataset.id;
-                                        if (commentId) {
-                                            try {
-                                                const commentRef = doc(db, `artifacts/${appId}/public/data/comments`, commentId);
-                                                await deleteDoc(commentRef);
-                                                console.log("Komentar berhasil dihapus!");
-                                            } catch (error) {
-                                                console.error("Kesalahan saat menghapus komentar:", error);
-                                                showMessage('Gagal', 'Terjadi kesalahan saat menghapus komentar. Silakan coba lagi.');
-                                            }
-                                        }
-                                    }
-                                });
-
-                                // Event listener untuk form pengiriman komentar
-                                document.getElementById('comment-form')?.addEventListener('submit', async (e) => {
-                                    e.preventDefault();
-                                    const nameInput = document.getElementById('comment-name');
-                                    const commentInput = document.getElementById('comment-text');
-                                    const name = nameInput.value.trim();
-                                    const comment = commentInput.value.trim();
-
-                                    if (name && comment && userId) {
-                                        try {
-                                            const commentsCollectionRef = collection(db, `artifacts/${appId}/public/data/comments`);
-                                            await addDoc(commentsCollectionRef, {
-                                                name: name,
-                                                comment: comment,
-                                                timestamp: serverTimestamp(),
-                                                userId: userId
-                                            });
-                                            console.log("Komentar berhasil ditambahkan!");
-                                            nameInput.value = '';
-                                            commentInput.value = '';
-                                        } catch (error) {
-                                            console.error("Kesalahan saat menambahkan komentar:", error);
-                                            showMessage('Gagal', 'Terjadi kesalahan saat mengirim komentar. Silakan coba lagi.');
-                                        }
-                                    } else {
-                                        showMessage('Peringatan', 'Nama dan komentar tidak boleh kosong.');
-                                    }
-                                });
+                                showMessage('Peringatan', 'Nama dan komentar tidak boleh kosong.');
                             }
-                        } catch (error) {
-                            console.error("Kesalahan pada onAuthStateChanged:", error);
-                        }
+                        });
                     });
-                } else {
-                    console.error("Konfigurasi Firebase tidak tersedia. Fungsionalitas tidak akan berfungsi.");
+                } catch (error) {
+                    console.error("Kesalahan Inisialisasi Firebase:", error);
+                    showMessage('Kesalahan Kritis', 'Tidak dapat menginisialisasi aplikasi. Beberapa fitur mungkin tidak berfungsi.');
                 }
-            } catch (e) {
-                console.error("Gagal mem-parsing konfigurasi Firebase:", e);
+            } else {
+                console.error("Konfigurasi Firebase tidak valid.");
+                showMessage('Kesalahan Konfigurasi', 'Konfigurasi aplikasi tidak valid. Fitur komentar dan view counter dinonaktifkan.');
             }
         });
     </script>
     
     <style>
-        /* Menggunakan font Inter sebagai font utama */
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8fafc; /* Latar belakang abu-abu muda */
-        }
-        /* Animasi fade-in sederhana */
-        .fade-in {
-            animation: fadeIn 1.2s ease-in-out;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .fade-in { animation: fadeIn 1.2s ease-in-out; }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        /* Styling untuk tombol Call-to-Action (CTA) */
-        .cta-button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem 2rem;
-            border-radius: 9999px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-        }
-        .cta-button ion-icon {
-            margin-right: 0.75rem;
-            font-size: 1.5rem;
-        }
-        .card-button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.5rem 1.5rem;
-            border-radius: 9999px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            margin-top: 1rem;
-        }
+        .cta-button { display: inline-flex; align-items: center; justify-content: center; padding: 1rem 2rem; border-radius: 9999px; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
+        .cta-button ion-icon { margin-right: 0.75rem; font-size: 1.5rem; }
+        .card-button { display: inline-flex; align-items: center; justify-content: center; padding: 0.5rem 1.5rem; border-radius: 9999px; font-weight: 600; transition: all 0.3s ease; margin-top: 1rem; }
     </style>
 </head>
 <body class="text-gray-800">
@@ -295,8 +249,9 @@
     <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
             <a href="#" class="text-2xl font-bold text-indigo-600">Mingcen</a>
-            <div class="flex space-x-8 items-center">
+            <div class="hidden md:flex space-x-8 items-center">
                 <a href="#fitur" class="text-gray-600 hover:text-indigo-600 transition duration-300">Fitur</a>
+                <a href="#comments" class="text-gray-600 hover:text-indigo-600 transition duration-300">Komentar</a>
                 <a href="#kontak" class="text-gray-600 hover:text-indigo-600 transition duration-300">Kontak</a>
             </div>
         </nav>
@@ -304,28 +259,25 @@
 
     <!-- Main Content -->
     <main>
-        <!-- Hero Section: Bagian utama yang menyambut pengunjung -->
+        <!-- Hero Section -->
         <section class="py-20 md:py-28 bg-white fade-in">
             <div class="container mx-auto px-6 text-center">
                 <h1 class="text-4xl md:text-6xl font-bold leading-tight mb-4">Kerja Lebih Cerdas, Bukan Lebih Keras.</h1>
                 <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-10"><b>Aplikasi</b> ini dapat membantu Anda untuk mengelola tugas, melacak progres, dan menyelesaikan pekerjaan lebih cepat.</p>
-                <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
-                    <a href="#fitur" class="cta-button bg-indigo-600 text-white hover:bg-indigo-700 transform hover:scale-105">
-                        <ion-icon name="eye-outline"></ion-icon>
-                        Lihat Fitur Kami
-                    </a>
-                </div>
+                <a href="#fitur" class="cta-button bg-indigo-600 text-white hover:bg-indigo-700 transform hover:scale-105">
+                    <ion-icon name="eye-outline"></ion-icon>
+                    Lihat Fitur Kami
+                </a>
             </div>
         </section>
 
-        <!-- Features Section: Menjelaskan fitur-fitur utama aplikasi -->
+        <!-- Features Section -->
         <section id="fitur" class="py-20">
             <div class="container mx-auto px-6">
                 <div class="text-center mb-12">
                     <h2 class="text-3xl md:text-4xl font-bold">Dirancang untuk Efisiensi Maksimal</h2>
                     <p class="text-gray-600 mt-2">Fitur-fitur yang akan mengubah cara Anda bekerja.</p>
                 </div>
-                <!-- Mengubah layout grid agar responsif dengan 2 kolom di layar kecil dan 3 kolom di layar besar -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                     <!-- Kartu Fitur 1: Aplikasi Cek Expired -->
                     <div class="bg-white p-8 rounded-xl shadow-lg text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
@@ -334,7 +286,6 @@
                         </div>
                         <h3 class="text-xl font-semibold mb-2">Aplikasi Cek Expired</h3>
                         <p class="text-gray-600">Pembuat Reminder cek expired yang lebih interaktif dan mudah digunakan.</p>
-                        <!-- Menambahkan span untuk menampilkan jumlah views dan data-feature-id untuk JavaScript -->
                         <span id="views-cek-expired" class="block text-sm text-gray-500 mt-2">0 views</span>
                         <a href="https://github.com/mingcen27/dev/raw/9897698ccba46ceb78977e45be767d525680f3c5/AplikasiCekExpired.apk" data-feature-id="cek-expired" class="card-button bg-indigo-600 text-white hover:bg-indigo-700 transform hover:scale-105">
                             Unduh Aplikasi
@@ -347,66 +298,58 @@
                         </div>
                         <h3 class="text-xl font-semibold mb-2">Aplikasi Max Display</h3>
                         <p class="text-gray-600">Otomatiskan tugas-tugas repetitif dan fokus pada hal yang paling penting.</p>
-                        <!-- Menambahkan span untuk menampilkan jumlah views dan data-feature-id untuk JavaScript -->
                         <span id="views-max-display" class="block text-sm text-gray-500 mt-2">0 views</span>
                         <a href="https://drive.google.com/uc?export=download&id=1Tm3LiaUvvYJCf8jYGgdQnBrL0qa-Bfkl" data-feature-id="max-display" class="card-button bg-green-600 text-white hover:bg-green-700 transform hover:scale-105">
                             Unduh Aplikasi
                         </a>
                     </div>
-                    <!-- Kartu Fitur 3: Aplikasi Generator Berita Acara -->
-                    <div class="bg-gray-200 p-8 rounded-xl shadow-lg text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
+                    <!-- Kartu Fitur 3: Generator Berita Acara -->
+                    <div class="bg-gray-200 p-8 rounded-xl shadow-lg text-center">
                         <div class="bg-gray-300 text-gray-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                             <ion-icon name="analytics-outline" class="text-3xl"></ion-icon>
                         </div>
-                        <h3 class="text-xl font-semibold mb-2 text-gray-600">Aplikasi Generator Berita Acara</h3>
-                        <p class="text-gray-500">Fitur ini sedang dalam pengembangan dan akan segera hadir.</p>
-                        <!-- Tidak menambahkan view counter karena belum ada tautan -->
-                        <button disabled class="card-button bg-gray-400 text-gray-200 cursor-not-allowed">
-                            Segera Hadir
-                        </button>
+                        <h3 class="text-xl font-semibold mb-2 text-gray-600">Generator Berita Acara</h3>
+                        <p class="text-gray-500">Fitur ini sedang dalam pengembangan.</p>
+                        <button disabled class="card-button bg-gray-400 text-gray-200 cursor-not-allowed">Segera Hadir</button>
                     </div>
-                    <!-- Kartu Fitur 4: Aplikasi Pembuat Sarana Promosi A4 -->
+                    <!-- Kartu Fitur 4: Promosi A4 -->
                     <div class="bg-white p-8 rounded-xl shadow-lg text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
                         <div class="bg-indigo-100 text-indigo-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                             <ion-icon name="megaphone-outline" class="text-3xl"></ion-icon>
                         </div>
-                        <h3 class="text-xl font-semibold mb-2">Aplikasi Pembuat Sarana Promosi A4</h3>
+                        <h3 class="text-xl font-semibold mb-2">Pembuat Promosi A4</h3>
                         <p class="text-gray-600">Aplikasi pembuat sarana promosi dengan tampilan 4x4.</p>
-                        <!-- Menambahkan span untuk menampilkan jumlah views dan data-feature-id untuk JavaScript -->
                         <span id="views-promosi-a4" class="block text-sm text-gray-500 mt-2">0 views</span>
                         <a href="GenerateSaranaPromosiA4.html" data-feature-id="promosi-a4" class="card-button bg-indigo-600 text-white hover:bg-indigo-700 transform hover:scale-105">
                             Buka Aplikasi
                         </a>
                     </div>
-                    <!-- Kartu Fitur 5: Aplikasi Pembuat Sarana Promosi Wobler -->
+                    <!-- Kartu Fitur 5: Promosi Wobler -->
                     <div class="bg-white p-8 rounded-xl shadow-lg text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
                         <div class="bg-indigo-100 text-indigo-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                             <ion-icon name="brush-outline" class="text-3xl"></ion-icon>
                         </div>
-                        <h3 class="text-xl font-semibold mb-2 text-gray-800">Aplikasi Pembuat Sarana Promosi Wobler</h3>
-                        <p class="text-gray-600">Aplikasi pembuat sarana promosi 6x6 yang mudah digunakan dan efesien.</p>
-                        <!-- Menambahkan span untuk menampilkan jumlah views dan data-feature-id untuk JavaScript -->
+                        <h3 class="text-xl font-semibold mb-2 text-gray-800">Pembuat Promosi Wobler</h3>
+                        <p class="text-gray-600">Aplikasi pembuat sarana promosi 6x6 yang efisien.</p>
                         <span id="views-promosi-wobler" class="block text-sm text-gray-500 mt-2">0 views</span>
                         <a href="GenerateSaranaPromosiA46x6.html" data-feature-id="promosi-wobler" class="card-button bg-indigo-600 text-white hover:bg-indigo-700 transform hover:scale-105">
                             Buka Aplikasi
                         </a>
                     </div>
                     <!-- Kartu Fitur 6: Coming Soon -->
-                    <div class="bg-gray-200 p-8 rounded-xl shadow-lg text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
+                    <div class="bg-gray-200 p-8 rounded-xl shadow-lg text-center">
                         <div class="bg-gray-300 text-gray-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                             <ion-icon name="construct-outline" class="text-3xl"></ion-icon>
                         </div>
                         <h3 class="text-xl font-semibold mb-2 text-gray-600">Coming Soon</h3>
-                        <p class="text-gray-500">Fitur baru sedang dalam pengembangan untuk mempermudah pekerjaan Anda.</p>
-                        <button disabled class="card-button bg-gray-400 text-gray-200 cursor-not-allowed">
-                            Segera Hadir
-                        </button>
+                        <p class="text-gray-500">Fitur baru sedang dalam pengembangan.</p>
+                        <button disabled class="card-button bg-gray-400 text-gray-200 cursor-not-allowed">Segera Hadir</button>
                     </div>
                 </div>
             </div>
         </section>
         
-        <!-- Comments Section (Previously Final CTA) -->
+        <!-- Comments Section -->
         <section id="comments" class="bg-gray-100 py-20">
             <div class="container mx-auto px-6">
                 <div class="text-center mb-12">
@@ -414,7 +357,6 @@
                     <p class="text-gray-600 max-w-2xl mx-auto">Berikan komentar atau masukan Anda di sini. Komentar Anda akan terlihat oleh semua orang.</p>
                 </div>
                 <div class="max-w-2xl mx-auto">
-                    <!-- Comment Form -->
                     <form id="comment-form" class="bg-white p-6 rounded-xl shadow-lg mb-8">
                         <div class="mb-4">
                             <label for="comment-name" class="block text-gray-700 font-semibold mb-2">Nama Anda</label>
@@ -424,40 +366,34 @@
                             <label for="comment-text" class="block text-gray-700 font-semibold mb-2">Komentar</label>
                             <textarea id="comment-text" name="comment" rows="4" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Tuliskan komentar Anda di sini..." required></textarea>
                         </div>
-                        <!-- Tombol dinonaktifkan hingga otentikasi selesai -->
                         <button type="submit" disabled class="w-full bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg cursor-not-allowed transition duration-300">
                             Memuat...
                         </button>
                     </form>
-                    
-                    <!-- Display Comments -->
                     <div id="comments-list" class="space-y-4 max-h-96 overflow-y-auto pr-2">
-                        <!-- Komentar akan dimuat di sini oleh JavaScript -->
+                        <!-- Komentar akan dimuat di sini -->
                     </div>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- Footer: Informasi kontak dan hak cipta -->
+    <!-- Footer -->
     <footer id="kontak" class="bg-gray-800 text-white py-12">
         <div class="container mx-auto px-6 text-center">
             <h3 class="text-2xl font-semibold mb-4">Punya Pertanyaan atau Masukan?</h3>
-            <p class="max-w-xl mx-auto mb-8">Sebagai pengembang, saya sangat menghargai masukan dari Anda. Hubungi saya langsung melalui email.</p>
+            <p class="max-w-xl mx-auto mb-8">Hubungi saya langsung melalui email untuk respons yang lebih cepat.</p>
             <a href="mailto:mingcen91@gmail.com" class="bg-indigo-600 text-white px-6 py-3 rounded-full hover:bg-indigo-700 transition duration-300">Kirim Email</a>
             <div class="flex justify-center space-x-6 mt-10">
-                <!-- Ikon Facebook -->
-                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300" title="Facebook"><ion-icon name="logo-facebook" class="text-2xl"></ion-icon></a>
-                <!-- Ikon Instagram -->
-                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300" title="Instagram"><ion-icon name="logo-instagram" class="text-2xl"></ion-icon></a>
-                <!-- Ikon YouTube -->
-                <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300" title="YouTube"><ion-icon name="logo-youtube" class="text-2xl"></ion-icon></a>
+                <a href="#" class="text-gray-400 hover:text-white" title="Facebook"><ion-icon name="logo-facebook" class="text-2xl"></ion-icon></a>
+                <a href="#" class="text-gray-400 hover:text-white" title="Instagram"><ion-icon name="logo-instagram" class="text-2xl"></ion-icon></a>
+                <a href="#" class="text-gray-400 hover:text-white" title="YouTube"><ion-icon name="logo-youtube" class="text-2xl"></ion-icon></a>
             </div>
-            <p class="text-gray-500 mt-10 text-sm">&copy; 2025. Dikembangkan dengan ❤️ oleh [Mingcen].</p>
+            <p class="text-gray-500 mt-10 text-sm">&copy; 2025. Dikembangkan dengan ❤️ oleh Mingcen.</p>
         </div>
     </footer>
     
-    <!-- Modal untuk menampilkan pesan kustom -->
+    <!-- Modal -->
     <div id="message-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
         <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div class="mt-3 text-center">
@@ -466,7 +402,7 @@
                     <p id="modal-message" class="text-sm text-gray-500"></p>
                 </div>
                 <div class="items-center px-4 py-3">
-                    <button id="close-modal-btn" class="px-4 py-2 bg-indigo-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" onclick="closeModal()">
+                    <button id="close-modal-btn" class="px-4 py-2 bg-indigo-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-indigo-700 focus:outline-none" onclick="closeModal()">
                         Tutup
                     </button>
                 </div>
