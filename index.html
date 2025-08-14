@@ -20,35 +20,53 @@
 
     <!-- Firebase SDK - Firestore -->
     <script type="module">
+        // Import fungsi-fungsi Firebase yang diperlukan
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, serverTimestamp, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, serverTimestamp, doc, updateDoc, increment, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global variables provided by the Canvas environment
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const firebaseConfig = JSON.parse(__firebase_config);
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // Initialize Firebase
+        // Initialize Firebase variables
         let app;
         let db;
         let auth;
         let userId;
 
-        // Function to create or update a document with an incremented counter
+        // Fungsi untuk menampilkan pesan dalam modal kustom
+        function showMessage(title, message) {
+            const modal = document.getElementById('message-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalMessage = document.getElementById('modal-message');
+            
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            modal.classList.remove('hidden');
+        }
+
+        // Fungsi untuk menutup modal pesan
+        function closeModal() {
+            const modal = document.getElementById('message-modal');
+            modal.classList.add('hidden');
+        }
+
+        // Fungsi untuk membuat atau memperbarui dokumen dengan counter yang di-increment
         const incrementViewCount = async (featureId) => {
             if (!db || !featureId) return;
 
-            // Use the public views collection
+            // Menggunakan koleksi 'views' publik untuk melacak jumlah unduhan
             const viewRef = doc(db, `artifacts/${appId}/public/data/views`, featureId);
             try {
-                // Atomically increments the view count by 1
+                // Secara atomik (aman dari race condition) menambah jumlah tampilan sebanyak 1
                 await updateDoc(viewRef, {
                     count: increment(1)
                 });
                 console.log(`View count for ${featureId} incremented successfully!`);
             } catch (error) {
-                // If the document doesn't exist, create it with a count of 1
+                // Jika dokumen belum ada, buat dokumen baru dengan hitungan awal 1
                 console.error(`Error incrementing count for ${featureId}. Attempting to create new document.`, error);
                 try {
                     await setDoc(viewRef, {
@@ -61,15 +79,17 @@
             }
         };
 
+        // Inisialisasi Firebase jika konfigurasi tersedia
         if (firebaseConfig && Object.keys(firebaseConfig).length > 0) {
             app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
             
-            // Sign in with the provided token or anonymously
+            // Mengatur listener untuk perubahan status otentikasi
             onAuthStateChanged(auth, async (user) => {
                 try {
                     if (!user) {
+                        // Masuk dengan token kustom atau secara anonim jika tidak ada pengguna
                         if (initialAuthToken) {
                             await signInWithCustomToken(auth, initialAuthToken);
                         } else {
@@ -79,51 +99,54 @@
                         userId = user.uid;
                         console.log("Pengguna berhasil masuk:", userId);
 
-                        // --- VIEW COUNTER LOGIC (BARU) ---
+                        // --- LOGIKA VIEW COUNTER (REAL-TIME) ---
                         const viewsCollection = collection(db, `artifacts/${appId}/public/data/views`);
                         const viewsQuery = query(viewsCollection);
 
-                        // Real-time listener for view counts
+                        // Listener real-time untuk jumlah tampilan
                         onSnapshot(viewsQuery, (snapshot) => {
                             snapshot.docs.forEach(doc => {
                                 const data = doc.data();
                                 const featureId = doc.id;
                                 const viewCounterElement = document.getElementById(`views-${featureId}`);
                                 if (viewCounterElement) {
-                                    // Update the text content with the new view count
+                                    // Memperbarui konten teks dengan jumlah tampilan baru
                                     viewCounterElement.textContent = `${data.count || 0} views`;
                                 }
                             });
                         });
 
-                        // Event listener for all download links to increment the view count
+                        // Event listener untuk semua tombol unduh agar menambah jumlah tampilan saat diklik
                         document.querySelectorAll('.card-button').forEach(button => {
                             button.addEventListener('click', (e) => {
+                                // Mencegah perilaku default (navigasi) agar kita bisa memproses klik terlebih dahulu
+                                e.preventDefault(); 
                                 const featureId = e.currentTarget.dataset.featureId;
                                 const originalHref = e.currentTarget.href;
-                                if (featureId) {
-                                    // Increment view count in Firestore
+                                if (featureId && originalHref) {
+                                    // Menambah jumlah tampilan di Firestore
                                     incrementViewCount(featureId);
-                                    // Redirect the user to the original link after the update is sent
-                                    // Use a slight delay to ensure the request is sent
-                                    setTimeout(() => {
-                                        window.location.href = originalHref;
-                                    }, 100);
+                                    // Mengarahkan pengguna ke tautan asli setelah update terkirim
+                                    window.location.href = originalHref;
                                 }
                             });
                         });
                         
-                        // --- KOMENTAR LOGIC (LAMA) ---
+                        // --- LOGIKA KOMENTAR (REAL-TIME) ---
                         const commentsCollection = collection(db, `artifacts/${appId}/public/data/comments`);
                         const commentsQuery = query(commentsCollection);
 
                         onSnapshot(commentsQuery, (snapshot) => {
                             const commentsList = document.getElementById('comments-list');
-                            commentsList.innerHTML = '';
-                            const sortedComments = snapshot.docs.map(doc => ({...doc.data(), id: doc.id})).sort((a, b) => b.timestamp - a.timestamp);
+                            if (!commentsList) return;
+                            commentsList.innerHTML = ''; // Kosongkan daftar sebelum memuat ulang
+                            
+                            // Mengurutkan komentar berdasarkan timestamp terbaru
+                            const sortedComments = snapshot.docs.map(doc => ({...doc.data(), id: doc.id})).sort((a, b) => b.timestamp?.seconds - a.timestamp?.seconds);
+                            
                             sortedComments.forEach((data) => {
                                 const commentElement = document.createElement('div');
-                                commentElement.classList.add('bg-white', 'p-4', 'rounded-lg', 'shadow-md', 'mb-4');
+                                commentElement.classList.add('bg-white', 'p-4', 'rounded-lg', 'shadow-md', 'mb-4', 'break-words', 'whitespace-pre-wrap');
                                 const isAuthor = data.userId === userId;
                                 const deleteButtonHtml = isAuthor ? `
                                     <button class="delete-comment-btn text-red-500 hover:text-red-700 transition duration-300" data-id="${data.id}" title="Hapus Komentar">
@@ -134,25 +157,24 @@
                                     <div class="flex items-center justify-between mb-2">
                                         <div class="flex items-center">
                                             <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold text-sm mr-3">
-                                                ${data.name.charAt(0).toUpperCase()}
+                                                ${data.name ? data.name.charAt(0).toUpperCase() : '?'}
                                             </div>
-                                            <h4 class="font-bold text-gray-800">${data.name}</h4>
+                                            <h4 class="font-bold text-gray-800">${data.name || 'Anonim'}</h4>
                                         </div>
                                         ${deleteButtonHtml}
                                     </div>
                                     <p class="text-gray-600 mb-2">${data.comment}</p>
-                                    <p class="text-xs text-gray-400">Dibuat pada: ${data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString() : 'Sekarang'}</p>
+                                    <p class="text-xs text-gray-400">Dibuat pada: ${data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString('id-ID') : 'Sekarang'}</p>
                                 `;
                                 commentsList.appendChild(commentElement);
                             });
                         });
                         
-                        const commentsList = document.getElementById('comments-list');
-                        commentsList.addEventListener('click', async (e) => {
+                        // Event listener untuk menghapus komentar
+                        document.getElementById('comments-list')?.addEventListener('click', async (e) => {
                             if (e.target.closest('.delete-comment-btn')) {
                                 const deleteButton = e.target.closest('.delete-comment-btn');
                                 const commentId = deleteButton.dataset.id;
-                                
                                 if (commentId) {
                                     try {
                                         const commentRef = doc(db, `artifacts/${appId}/public/data/comments`, commentId);
@@ -160,14 +182,15 @@
                                         console.log("Komentar berhasil dihapus!");
                                     } catch (error) {
                                         console.error("Kesalahan saat menghapus komentar:", error);
+                                        showMessage('Gagal', 'Terjadi kesalahan saat menghapus komentar. Silakan coba lagi.');
                                     }
                                 }
                             }
                         });
 
 
-                        const commentForm = document.getElementById('comment-form');
-                        commentForm.addEventListener('submit', async (e) => {
+                        // Event listener untuk form pengiriman komentar
+                        document.getElementById('comment-form')?.addEventListener('submit', async (e) => {
                             e.preventDefault();
                             const name = document.getElementById('comment-name').value;
                             const comment = document.getElementById('comment-text').value;
@@ -183,12 +206,15 @@
                                         userId: userId
                                     });
                                     console.log("Komentar berhasil ditambahkan!");
+                                    // Bersihkan form setelah berhasil
                                     document.getElementById('comment-name').value = '';
                                     document.getElementById('comment-text').value = '';
                                 } catch (error) {
                                     console.error("Kesalahan saat menambahkan komentar:", error);
+                                    showMessage('Gagal', 'Terjadi kesalahan saat mengirim komentar. Silakan coba lagi.');
                                 }
                             } else {
+                                showMessage('Peringatan', 'Nama dan komentar tidak boleh kosong.');
                                 console.error("Pengiriman komentar gagal: Nama, komentar, atau userId tidak ada.");
                             }
                         });
@@ -389,7 +415,7 @@
                     
                     <!-- Display Comments -->
                     <div id="comments-list" class="space-y-4 max-h-96 overflow-y-auto pr-2">
-                        <!-- Comments will be loaded here by JavaScript -->
+                        <!-- Komentar akan dimuat di sini oleh JavaScript -->
                     </div>
                 </div>
             </div>
@@ -413,5 +439,22 @@
             <p class="text-gray-500 mt-10 text-sm">&copy; 2025. Dikembangkan dengan ❤️ oleh [Mingcen].</p>
         </div>
     </footer>
+    
+    <!-- Modal untuk menampilkan pesan kustom -->
+    <div id="message-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <h3 id="modal-title" class="text-lg leading-6 font-medium text-gray-900"></h3>
+                <div class="mt-2 px-7 py-3">
+                    <p id="modal-message" class="text-sm text-gray-500"></p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button id="close-modal-btn" class="px-4 py-2 bg-indigo-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" onclick="closeModal()">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
