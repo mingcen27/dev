@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <!-- Mengubah viewport agar responsif di semua perangkat -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mingcen | Mingcen27</title>
+    <title>Mingcen | MCN27</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -33,7 +33,7 @@
                 apiKey: "AIzaSyA21JXWHE7AJm7EWDKXgbsmvm8BgmP-pHM",
                 authDomain: "mingcen-52b65.firebaseapp.com",
                 projectId: "mingcen-52b65",
-                storageBucket: "mingcen-52b65.appspot.com", // Format standar untuk storage bucket
+                storageBucket: "mingcen-52b65.appspot.com",
                 messagingSenderId: "204252909058",
                 appId: "1:204252909058:web:f0f00f46de383b8fe4211b",
                 measurementId: "G-2QYEZ1GM2D"
@@ -92,8 +92,10 @@
                 if (!db || !featureId) return;
                 const viewRef = doc(db, `artifacts/${appId}/public/data/views`, featureId);
                 try {
+                    // Coba update, jika dokumen belum ada, akan gagal dan masuk ke blok catch
                     await updateDoc(viewRef, { count: increment(1) });
                 } catch (error) {
+                    // Jika dokumen belum ada, buat dokumen baru dengan count = 1
                     await setDoc(viewRef, { count: 1 });
                 }
             };
@@ -138,29 +140,28 @@
                             });
                         });
 
-                        // Listener untuk tombol unduh
+                        // [FIXED] Listener untuk tombol unduh/buka aplikasi
                         document.querySelectorAll('.card-button[data-feature-id]').forEach(button => {
-                            const newButton = button.cloneNode(true);
-                            button.parentNode.replaceChild(newButton, button);
-                            newButton.addEventListener('click', async (e) => {
-                                e.preventDefault();
+                            button.addEventListener('click', (e) => {
+                                // Jangan mencegah aksi default link (e.preventDefault()),
+                                // agar link tetap bisa dibuka secara normal.
+                                // Cukup panggil fungsi untuk menambah view count di latar belakang.
                                 const featureId = e.currentTarget.dataset.featureId;
-                                const originalHref = e.currentTarget.href;
                                 if (featureId) {
-                                  await incrementViewCount(featureId);
+                                    // Panggil fungsi tanpa 'await' agar tidak memblokir navigasi.
+                                    // Ini adalah pendekatan "fire-and-forget".
+                                    incrementViewCount(featureId);
                                 }
-                                if (originalHref) {
-                                  window.location.href = originalHref;
-                                }
+                                // Browser akan melanjutkan ke href dari link secara otomatis.
                             });
                         });
                         
                         // Listener untuk komentar
-                        const commentsCollection = collection(db, `artifacts/${appId}/public/data/comments`);
-                        onSnapshot(commentsCollection, (snapshot) => {
+                        const commentsQuery = query(collection(db, `artifacts/${appId}/public/data/comments`));
+                        onSnapshot(commentsQuery, (snapshot) => {
                             const commentsList = document.getElementById('comments-list');
                             if (!commentsList) return;
-                            commentsList.innerHTML = '';
+                            commentsList.innerHTML = ''; // Kosongkan daftar sebelum mengisi ulang
                             const sortedComments = snapshot.docs
                                 .map(doc => ({...doc.data(), id: doc.id}))
                                 .sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
