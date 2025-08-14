@@ -2,6 +2,7 @@
 <html lang="id" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
+    <!-- Mengubah viewport agar responsif di semua perangkat -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mingcen | MCN27</title>
     
@@ -21,7 +22,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, serverTimestamp, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, serverTimestamp, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global variables provided by the Canvas environment
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -33,6 +34,32 @@
         let db;
         let auth;
         let userId;
+
+        // Function to create or update a document with an incremented counter
+        const incrementViewCount = async (featureId) => {
+            if (!db || !featureId) return;
+
+            // Use the public views collection
+            const viewRef = doc(db, `artifacts/${appId}/public/data/views`, featureId);
+            try {
+                // Atomically increments the view count by 1
+                await updateDoc(viewRef, {
+                    count: increment(1)
+                });
+                console.log(`View count for ${featureId} incremented successfully!`);
+            } catch (error) {
+                // If the document doesn't exist, create it with a count of 1
+                console.error(`Error incrementing count for ${featureId}. Attempting to create new document.`, error);
+                try {
+                    await setDoc(viewRef, {
+                        count: 1
+                    });
+                    console.log(`New view document for ${featureId} created successfully!`);
+                } catch (createError) {
+                    console.error("Error creating new view document:", createError);
+                }
+            }
+        };
 
         if (firebaseConfig && Object.keys(firebaseConfig).length > 0) {
             app = initializeApp(firebaseConfig);
@@ -52,19 +79,51 @@
                         userId = user.uid;
                         console.log("Pengguna berhasil masuk:", userId);
 
-                        // Set up the real-time comments listener after successful authentication
+                        // --- VIEW COUNTER LOGIC (BARU) ---
+                        const viewsCollection = collection(db, `artifacts/${appId}/public/data/views`);
+                        const viewsQuery = query(viewsCollection);
+
+                        // Real-time listener for view counts
+                        onSnapshot(viewsQuery, (snapshot) => {
+                            snapshot.docs.forEach(doc => {
+                                const data = doc.data();
+                                const featureId = doc.id;
+                                const viewCounterElement = document.getElementById(`views-${featureId}`);
+                                if (viewCounterElement) {
+                                    // Update the text content with the new view count
+                                    viewCounterElement.textContent = `${data.count || 0} views`;
+                                }
+                            });
+                        });
+
+                        // Event listener for all download links to increment the view count
+                        document.querySelectorAll('.card-button').forEach(button => {
+                            button.addEventListener('click', (e) => {
+                                const featureId = e.currentTarget.dataset.featureId;
+                                const originalHref = e.currentTarget.href;
+                                if (featureId) {
+                                    // Increment view count in Firestore
+                                    incrementViewCount(featureId);
+                                    // Redirect the user to the original link after the update is sent
+                                    // Use a slight delay to ensure the request is sent
+                                    setTimeout(() => {
+                                        window.location.href = originalHref;
+                                    }, 100);
+                                }
+                            });
+                        });
+                        
+                        // --- KOMENTAR LOGIC (LAMA) ---
                         const commentsCollection = collection(db, `artifacts/${appId}/public/data/comments`);
                         const commentsQuery = query(commentsCollection);
 
                         onSnapshot(commentsQuery, (snapshot) => {
                             const commentsList = document.getElementById('comments-list');
                             commentsList.innerHTML = '';
-                            // Sort the comments in memory by timestamp
                             const sortedComments = snapshot.docs.map(doc => ({...doc.data(), id: doc.id})).sort((a, b) => b.timestamp - a.timestamp);
                             sortedComments.forEach((data) => {
                                 const commentElement = document.createElement('div');
                                 commentElement.classList.add('bg-white', 'p-4', 'rounded-lg', 'shadow-md', 'mb-4');
-                                // Determine if the current user is the author of the comment
                                 const isAuthor = data.userId === userId;
                                 const deleteButtonHtml = isAuthor ? `
                                     <button class="delete-comment-btn text-red-500 hover:text-red-700 transition duration-300" data-id="${data.id}" title="Hapus Komentar">
@@ -88,7 +147,6 @@
                             });
                         });
                         
-                        // Handle comment deletion using event delegation
                         const commentsList = document.getElementById('comments-list');
                         commentsList.addEventListener('click', async (e) => {
                             if (e.target.closest('.delete-comment-btn')) {
@@ -108,7 +166,6 @@
                         });
 
 
-                        // Handle comment form submission only after userId is available
                         const commentForm = document.getElementById('comment-form');
                         commentForm.addEventListener('submit', async (e) => {
                             e.preventDefault();
@@ -145,7 +202,7 @@
                 }
             });
         } else {
-            console.error("Konfigurasi Firebase tidak tersedia. Fungsionalitas komentar tidak akan berfungsi.");
+            console.error("Konfigurasi Firebase tidak tersedia. Fungsionalitas komentar dan view counter tidak akan berfungsi.");
         }
     </script>
     
@@ -226,7 +283,8 @@
                     <h2 class="text-3xl md:text-4xl font-bold">Dirancang untuk Efisiensi Maksimal</h2>
                     <p class="text-gray-600 mt-2">Fitur-fitur yang akan mengubah cara Anda bekerja.</p>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Mengubah layout grid agar responsif dengan 2 kolom di layar kecil dan 3 kolom di layar besar -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                     <!-- Kartu Fitur 1: Aplikasi Cek Expired -->
                     <div class="bg-white p-8 rounded-xl shadow-lg text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
                         <div class="bg-indigo-100 text-indigo-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
@@ -234,7 +292,9 @@
                         </div>
                         <h3 class="text-xl font-semibold mb-2">Aplikasi Cek Expired</h3>
                         <p class="text-gray-600">Pembuat Reminder cek expired yang lebih interaktif dan mudah digunakan.</p>
-                        <a href="https://github.com/mingcen27/dev/raw/9897698ccba46ceb78977e45be767d525680f3c5/AplikasiCekExpired.apk" class="card-button bg-indigo-600 text-white hover:bg-indigo-700 transform hover:scale-105">
+                        <!-- Menambahkan span untuk menampilkan jumlah views dan data-feature-id untuk JavaScript -->
+                        <span id="views-cek-expired" class="block text-sm text-gray-500 mt-2">0 views</span>
+                        <a href="https://github.com/mingcen27/dev/raw/9897698ccba46ceb78977e45be767d525680f3c5/AplikasiCekExpired.apk" data-feature-id="cek-expired" class="card-button bg-indigo-600 text-white hover:bg-indigo-700 transform hover:scale-105">
                             Unduh Aplikasi
                         </a>
                     </div>
@@ -245,7 +305,9 @@
                         </div>
                         <h3 class="text-xl font-semibold mb-2">Aplikasi Max Display</h3>
                         <p class="text-gray-600">Otomatiskan tugas-tugas repetitif dan fokus pada hal yang paling penting.</p>
-                        <a href="https://drive.google.com/uc?export=download&id=1Tm3LiaUvvYJCf8jYGgdQnBrL0qa-Bfkl" class="card-button bg-green-600 text-white hover:bg-green-700 transform hover:scale-105">
+                        <!-- Menambahkan span untuk menampilkan jumlah views dan data-feature-id untuk JavaScript -->
+                        <span id="views-max-display" class="block text-sm text-gray-500 mt-2">0 views</span>
+                        <a href="https://drive.google.com/uc?export=download&id=1Tm3LiaUvvYJCf8jYGgdQnBrL0qa-Bfkl" data-feature-id="max-display" class="card-button bg-green-600 text-white hover:bg-green-700 transform hover:scale-105">
                             Unduh Aplikasi
                         </a>
                     </div>
@@ -256,6 +318,7 @@
                         </div>
                         <h3 class="text-xl font-semibold mb-2 text-gray-600">Aplikasi Generator Berita Acara</h3>
                         <p class="text-gray-500">Fitur ini sedang dalam pengembangan dan akan segera hadir.</p>
+                        <!-- Tidak menambahkan view counter karena belum ada tautan -->
                         <button disabled class="card-button bg-gray-400 text-gray-200 cursor-not-allowed">
                             Segera Hadir
                         </button>
@@ -267,7 +330,9 @@
                         </div>
                         <h3 class="text-xl font-semibold mb-2">Aplikasi Pembuat Sarana Promosi A4</h3>
                         <p class="text-gray-600">Aplikasi pembuat sarana promosi dengan tampilan 4x4.</p>
-                        <a href="GenerateSaranaPromosiA4.html" class="card-button bg-indigo-600 text-white hover:bg-indigo-700 transform hover:scale-105">
+                        <!-- Menambahkan span untuk menampilkan jumlah views dan data-feature-id untuk JavaScript -->
+                        <span id="views-promosi-a4" class="block text-sm text-gray-500 mt-2">0 views</span>
+                        <a href="GenerateSaranaPromosiA4.html" data-feature-id="promosi-a4" class="card-button bg-indigo-600 text-white hover:bg-indigo-700 transform hover:scale-105">
                             Buka Aplikasi
                         </a>
                     </div>
@@ -278,7 +343,9 @@
                         </div>
                         <h3 class="text-xl font-semibold mb-2 text-gray-800">Aplikasi Pembuat Sarana Promosi Wobler</h3>
                         <p class="text-gray-600">Aplikasi pembuat sarana promosi 6x6 yang mudah digunakan dan efesien.</p>
-                        <a href="GenerateSaranaPromosiA46x6.html" class="card-button bg-indigo-600 text-white hover:bg-indigo-700 transform hover:scale-105">
+                        <!-- Menambahkan span untuk menampilkan jumlah views dan data-feature-id untuk JavaScript -->
+                        <span id="views-promosi-wobler" class="block text-sm text-gray-500 mt-2">0 views</span>
+                        <a href="GenerateSaranaPromosiA46x6.html" data-feature-id="promosi-wobler" class="card-button bg-indigo-600 text-white hover:bg-indigo-700 transform hover:scale-105">
                             Buka Aplikasi
                         </a>
                     </div>
