@@ -2,7 +2,7 @@
 <html lang="id" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=1280">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mingcen | MCN27</title>
     
     <!-- Tailwind CSS -->
@@ -85,7 +85,7 @@
                 const viewRef = doc(db, `artifacts/${appId}/public/data/views`, featureId);
                 try {
                     await updateDoc(viewRef, { count: increment(1) });
-                     console.log(`View count for ${featureId} incremented.`);
+                    console.log(`View count for ${featureId} incremented.`);
                 } catch (error) {
                     if (error.code === 'not-found') {
                         await setDoc(viewRef, { count: 1 });
@@ -331,7 +331,19 @@
                             Buka Aplikasi
                         </a>
                     </div>
-                    <!-- Kartu Fitur 6: Coming Soon -->
+                    <!-- Kartu Fitur 6: Generator Barcode (BARU) -->
+                    <div class="bg-white p-8 rounded-xl shadow-lg text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
+                        <div class="bg-yellow-100 text-yellow-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
+                            <ion-icon name="barcode-outline" class="text-3xl"></ion-icon>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">Generator Barcode</h3>
+                        <p class="text-gray-600">Buat kode batang (barcode) dengan mudah untuk berbagai keperluan.</p>
+                        <span id="views-barcode-generator" class="block text-sm text-gray-500 mt-2">0 views</span>
+                        <a href="GeneratorBarcode.html" data-feature-id="barcode-generator" class="card-button bg-yellow-600 text-white hover:bg-yellow-700 transform hover:scale-105">
+                            Buka Aplikasi
+                        </a>
+                    </div>
+                    <!-- Kartu Fitur 7: Coming Soon -->
                     <div class="bg-gray-200 p-8 rounded-xl shadow-lg text-center">
                         <div class="bg-gray-300 text-gray-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                             <ion-icon name="construct-outline" class="text-3xl"></ion-icon>
@@ -407,4 +419,3 @@
     </div>
 </body>
 </html>
-
