@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <!-- Mengubah viewport agar responsif di semua perangkat -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mingcen | MCN27</title>
+    <title>Mingcen | Mingcen27</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -145,8 +145,13 @@
                             newButton.addEventListener('click', async (e) => {
                                 e.preventDefault();
                                 const featureId = e.currentTarget.dataset.featureId;
-                                await incrementViewCount(featureId);
-                                window.location.href = e.currentTarget.href;
+                                const originalHref = e.currentTarget.href;
+                                if (featureId) {
+                                  await incrementViewCount(featureId);
+                                }
+                                if (originalHref) {
+                                  window.location.href = originalHref;
+                                }
                             });
                         });
                         
