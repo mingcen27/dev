@@ -2,129 +2,104 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <!-- BARU: Mengubah viewport untuk memaksa tampilan desktop -->
-    <!-- Lebar tampilan ditetapkan menjadi 1280px, mengabaikan lebar perangkat -->
-    <meta name="viewport" content="width=1280">
-    <title>Generator Sarana Promosi</title>
-    <!-- Tailwind CSS untuk styling yang cepat dan responsif -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Sarana Promosi - 5 Halaman</title>
+    <!-- Tailwind CSS untuk styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- jsPDF untuk mengunduh canvas sebagai file PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
-    <!-- Font Inter untuk tampilan yang bersih dan modern -->
+    <!-- Font Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700;900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;700;900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap" rel="stylesheet">
+    
     <style>
+        /* Mengatur font utama ke Inter */
         body {
             font-family: 'Inter', sans-serif;
         }
-        /* Custom scrollbar untuk estetika yang lebih baik */
-        ::-webkit-scrollbar {
-            width: 8px;
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+        /* Style untuk tab halaman */
+        .page-tab {
+            cursor: pointer;
+            padding: 10px 20px;
+            border: 1px solid #ccc;
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+            background-color: #f1f1f1;
+            margin-right: 5px;
+            font-weight: 600;
+            transition: background-color 0.3s, border-color 0.3s;
         }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
+        .page-tab.active {
+            background-color: #fff;
+            border-color: #ccc;
+            border-bottom: 1px solid #fff;
+            position: relative;
+            top: 1px;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555;
-            border-radius: 10px;
-        }
-        #promoCanvas {
-            /* Mempertahankan rasio aspek A4 untuk pratinjau */
+        .page-content { display: none; }
+        .page-content.active { display: block; }
+        
+        .preview-canvas {
             aspect-ratio: 210 / 297;
+            width: 100%;
+            max-width: 400px; /* Batasi lebar maksimum pratinjau */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 8px;
         }
-        /* Kelas untuk memastikan font di canvas dimuat */
-        .font-inter { font-family: 'Inter'; }
-        .font-tahoma { font-family: 'Tahoma'; }
-        .font-arial { font-family: 'Arial'; }
-        .font-roboto { font-family: 'Roboto'; }
-        .font-lato { font-family: 'Lato'; }
-        .font-montserrat { font-family: 'Montserrat'; }
-        .font-open-sans { font-family: 'Open Sans'; }
-        .font-source-sans { font-family: 'Source Sans 3'; }
-        .font-georgia { font-family: 'Georgia'; }
-        .font-poppins { font-family: 'Poppins'; }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
     <div class="container mx-auto p-4 md:p-8">
-        <!-- Bagian Header -->
+        <!-- Header -->
         <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-8">
-            <h1 class="text-3xl md:text-4xl font-black text-center mb-2 text-gray-900">Generator Sarana Promosi</h1>
-            <p class="text-center text-gray-500 mb-8">Buat gambar promosi produk dengan cepat dan mudah.</p>
+            <h1 class="text-3xl md:text-4xl font-black text-center mb-2 text-gray-900">Generator Sarana Promosi (5 Halaman)</h1>
+            <p class="text-center text-gray-500 mb-8">Buat promosi multi-halaman dengan tata letak berbeda.</p>
         </div>
 
-        <!-- Grid Konten Utama -->
+        <!-- Konten Utama -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Kolom Input Data -->
+            <!-- Kolom Editor -->
             <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 overflow-y-auto max-h-[85vh]">
                 <h2 class="text-2xl font-bold mb-6 border-b pb-3">Editor Data Promosi</h2>
                 
                 <!-- Info Umum -->
                 <div class="space-y-4 mb-8">
                     <div>
-                        <label for="promoTitle" class="block text-sm font-medium text-gray-700 mb-1">Judul Utama</label>
-                        <input type="text" id="promoTitle" value="PROMO GANTUNG" class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                        <label for="promoTitle" class="block text-sm font-medium text-gray-700 mb-1">Judul Utama (Halaman 1-2)</label>
+                        <input type="text" id="promoTitle" value="PROMO GANTUNG" class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition">
                     </div>
                     <div>
-                        <label for="promoPeriod" class="block text-sm font-medium text-gray-700 mb-1">Periode Promosi</label>
-                        <input type="text" id="promoPeriod" value="Periode : 1 - 31 Oktober" class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-                    </div>
-                    <div>
-                        <label for="fontSelector" class="block text-sm font-medium text-gray-700 mb-1">Pilih Font</label>
-                        <select id="fontSelector" class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-                            <option value="Inter">Inter</option>
-                            <option value="Tahoma">Tahoma</option>
-                            <option value="Arial">Arial</option>
-                            <option value="Roboto">Roboto</option>
-                            <option value="Lato">Lato</option>
-                            <option value="Montserrat">Montserrat</option>
-                            <option value="Open Sans">Open Sans</option>
-                            <option value="Source Sans 3">Source Sans 3</option>
-                            <option value="Georgia">Georgia</option>
-                            <option value="Poppins">Poppins</option>
-                        </select>
+                        <label for="promoPeriod" class="block text-sm font-medium text-gray-700 mb-1">Periode Promosi (Halaman 1-2)</label>
+                        <input type="text" id="promoPeriod" value="Periode : 1 - 31 Oktober" class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition">
                     </div>
                 </div>
 
-                <!-- Daftar Produk -->
-                <div id="productList" class="space-y-6">
-                    <h3 class="text-xl font-bold border-b pb-2">Daftar Produk</h3>
-                    <!-- Produk akan ditambahkan di sini oleh JavaScript -->
-                </div>
+                <!-- Navigasi Tab Halaman -->
+                <div id="pageTabs" class="flex border-b mb-4 overflow-x-auto"></div>
+
+                <!-- Kontainer Konten Halaman -->
+                <div id="pageContents"></div>
+
             </div>
 
-            <!-- Kolom Hasil Gambar -->
-            <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8">
-                <h2 class="text-2xl font-bold mb-6 border-b pb-3">Hasil Gambar</h2>
-                <div class="bg-gray-200 rounded-lg p-4 flex justify-center items-center">
-                    <canvas id="promoCanvas" class="bg-white rounded-md shadow-inner max-w-full h-auto"></canvas>
+            <!-- Kolom Pratinjau -->
+            <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 max-h-[85vh] overflow-y-auto">
+                <h2 class="text-2xl font-bold mb-6 border-b pb-3">Pratinjau Hasil</h2>
+                <div id="previewContainer" class="space-y-6 flex flex-col items-center">
+                    <!-- Canvas pratinjau akan ditambahkan di sini oleh JavaScript -->
                 </div>
                 <div class="mt-6 flex flex-col sm:flex-row gap-4">
-                    <button id="generateBtn" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition-all duration-300 ease-in-out flex items-center justify-center shadow-md hover:shadow-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
-                            <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" />
-                        </svg>
-                        Buat Gambar Promosi
-                    </button>
                     <button id="downloadBtn" class="w-full bg-gray-800 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-900 transition-all duration-300 ease-in-out flex items-center justify-center shadow-md hover:shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                         Unduh PDF (A4)
                     </button>
                 </div>
@@ -134,30 +109,74 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // --- Konfigurasi Global ---
+            const TOTAL_PAGES = 5;
+
             // --- Elemen DOM ---
-            const productList = document.getElementById('productList');
-            const generateBtn = document.getElementById('generateBtn');
             const downloadBtn = document.getElementById('downloadBtn');
-            const canvas = document.getElementById('promoCanvas');
-            const ctx = canvas.getContext('2d');
-            const fontSelector = document.getElementById('fontSelector');
+            const pageTabsContainer = document.getElementById('pageTabs');
+            const pageContentsContainer = document.getElementById('pageContents');
+            const previewContainer = document.getElementById('previewContainer');
 
-            let productCount = 0;
+            let currentPage = 1;
 
-            // --- Fungsi ---
-            /**
-             * Menambahkan satu set input field untuk produk baru.
-             */
-            function addProduct() {
-                productCount++;
+            // --- Inisialisasi UI ---
+            function initializeUI() {
+                for (let i = 1; i <= TOTAL_PAGES; i++) {
+                    const tab = document.createElement('div');
+                    tab.id = `tab${i}`;
+                    tab.className = `page-tab ${i === 1 ? 'active' : ''}`;
+                    tab.textContent = `Halaman ${i}`;
+                    tab.onclick = () => changePage(i);
+                    pageTabsContainer.appendChild(tab);
+
+                    const content = document.createElement('div');
+                    content.id = `pageContent${i}`;
+                    content.className = `page-content ${i === 1 ? 'active' : ''}`;
+                    
+                    const productList = document.createElement('div');
+                    productList.id = `productList${i}`;
+                    productList.className = 'space-y-6';
+                    
+                    content.appendChild(productList);
+                    pageContentsContainer.appendChild(content);
+
+                    const previewWrapper = document.createElement('div');
+                    previewWrapper.className = 'text-center';
+                    const previewLabel = document.createElement('h3');
+                    previewLabel.className = 'text-lg font-bold mb-2';
+                    previewLabel.textContent = `Pratinjau Halaman ${i}`;
+                    const canvas = document.createElement('canvas');
+                    canvas.id = `promoCanvas${i}`;
+                    canvas.className = 'preview-canvas bg-white';
+                    
+                    previewWrapper.appendChild(previewLabel);
+                    previewWrapper.appendChild(canvas);
+                    previewContainer.appendChild(previewWrapper);
+
+                    const productsOnThisPage = (i <= 2) ? 4 : 5;
+                    for (let j = 1; j <= productsOnThisPage; j++) {
+                        addProductSlot(i, j);
+                    }
+                }
+            }
+
+            // --- Fungsi Manajemen Halaman & Produk ---
+            window.changePage = function(page) {
+                currentPage = page;
+                for (let i = 1; i <= TOTAL_PAGES; i++) {
+                    document.getElementById(`tab${i}`).classList.toggle('active', i === page);
+                    document.getElementById(`pageContent${i}`).classList.toggle('active', i === page);
+                }
+            }
+
+            function addProductSlot(page, productIndex) {
+                const productList = document.getElementById(`productList${page}`);
                 const productDiv = document.createElement('div');
-                productDiv.className = 'product-item p-4 border rounded-lg bg-gray-50 relative';
-                productDiv.id = `product-${productCount}`;
+                productDiv.className = 'product-item p-4 border rounded-lg bg-gray-50';
+                productDiv.id = `product-page${page}-${productIndex}`;
                 productDiv.innerHTML = `
-                    <button class="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition" onclick="removeProduct(${productCount})">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                    </button>
-                    <h4 class="font-bold mb-3 text-gray-600">Produk ${productCount}</h4>
+                    <h4 class="font-bold mb-3 text-gray-800">Produk ${productIndex} (Halaman ${page})</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Nama Produk</label>
@@ -169,7 +188,13 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Harga Coret</label>
-                            <input type="text" placeholder="e.g., 12.000" class="data-coret w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500">
+                            <div class="flex items-center space-x-2">
+                                <input type="text" placeholder="e.g., 12.000" class="data-coret w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 transition-colors">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" class="sr-only peer data-coret-toggle" checked>
+                                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Harga Promo</label>
@@ -184,276 +209,336 @@
                 productList.appendChild(productDiv);
             }
 
-            /**
-             * Menghapus field produk.
-             * @param {number} id - ID produk yang akan dihapus.
-             */
-            window.removeProduct = function(id) {
-                const productToRemove = document.getElementById(`product-${id}`);
-                if (productToRemove) {
-                    productToRemove.remove();
+            // --- Fungsi Penyimpanan Data ---
+            function saveData() {
+                const data = {
+                    title: document.getElementById('promoTitle').value,
+                    period: document.getElementById('promoPeriod').value,
+                    pages: []
+                };
+
+                for (let i = 1; i <= TOTAL_PAGES; i++) {
+                    const pageProducts = [];
+                    const productElements = document.querySelectorAll(`#productList${i} .product-item`);
+                    productElements.forEach(p => {
+                        pageProducts.push({
+                            nama: p.querySelector('.data-nama').value,
+                            deskripsi: p.querySelector('.data-deskripsi').value,
+                            hargaCoret: p.querySelector('.data-coret').value,
+                            hargaCoretEnabled: p.querySelector('.data-coret-toggle').checked,
+                            hargaPromo: p.querySelector('.data-promo').value,
+                            extra: p.querySelector('.data-extra').value
+                        });
+                    });
+                    data.pages.push(pageProducts);
                 }
+                localStorage.setItem('promoGeneratorData', JSON.stringify(data));
+            }
+
+            function loadData() {
+                const savedDataJSON = localStorage.getItem('promoGeneratorData');
+                if (!savedDataJSON) return false;
+
+                const savedData = JSON.parse(savedDataJSON);
+
+                document.getElementById('promoTitle').value = savedData.title || 'PROMO GANTUNG';
+                document.getElementById('promoPeriod').value = savedData.period || 'Periode : 1 - 31 Oktober';
+
+                savedData.pages.forEach((pageData, pageIndex) => {
+                    const pageNum = pageIndex + 1;
+                    const productElements = document.querySelectorAll(`#productList${pageNum} .product-item`);
+                    productElements.forEach((p, productIndex) => {
+                        const productData = pageData[productIndex];
+                        if (productData) {
+                            p.querySelector('.data-nama').value = productData.nama || '';
+                            p.querySelector('.data-deskripsi').value = productData.deskripsi || '';
+                            p.querySelector('.data-coret').value = productData.hargaCoret || '';
+                            p.querySelector('.data-promo').value = productData.hargaPromo || '';
+                            p.querySelector('.data-extra').value = productData.extra || '';
+
+                            const toggle = p.querySelector('.data-coret-toggle');
+                            toggle.checked = productData.hargaCoretEnabled ?? true; 
+                        }
+                    });
+                });
+                return true;
             }
             
-            /**
-             * Menggambar teks dengan wrapping jika terlalu panjang.
-             * @param {CanvasRenderingContext2D} context - Konteks canvas.
-             * @param {string} text - Teks yang akan digambar.
-             * @param {number} x - Koordinat X.
-             * @param {number} y - Koordinat Y.
-             * @param {number} maxWidth - Lebar maksimum teks.
-             * @param {number} lineHeight - Tinggi baris.
-             */
+            // --- Fungsi Menggambar Canvas ---
             function wrapText(context, text, x, y, maxWidth, lineHeight) {
                 const words = text.split(' ');
                 let line = '';
+                let currentY = y;
                 for(let n = 0; n < words.length; n++) {
                     const testLine = line + words[n] + ' ';
                     const metrics = context.measureText(testLine);
                     const testWidth = metrics.width;
                     if (testWidth > maxWidth && n > 0) {
-                        context.fillText(line, x, y);
+                        context.fillText(line, x, currentY);
                         line = words[n] + ' ';
-                        y += lineHeight;
+                        currentY += lineHeight;
                     } else {
                         line = testLine;
                     }
                 }
-                context.fillText(line, x, y);
+                context.fillText(line, x, currentY);
             }
 
-            /**
-             * Fungsi utama untuk menggambar promosi ke canvas.
-             */
-            function generatePromotion() {
-                // Konfigurasi Canvas untuk kualitas tinggi dengan rasio A4
-                const printDPI = 300;
+            function drawPage(pageNumber) {
+                const canvas = document.getElementById(`promoCanvas${pageNumber}`);
+                const ctx = canvas.getContext('2d');
+
+                const printDPI = 150; 
                 const mmPerInch = 25.4;
-                const scaleFactor = 5;
                 const canvasWidth = (210 / mmPerInch) * printDPI;
                 const canvasHeight = (297 / mmPerInch) * printDPI;
-                const scale = printDPI / 96;
                 canvas.width = canvasWidth;
                 canvas.height = canvasHeight;
 
-
-                
-                // Reset canvas
                 ctx.fillStyle = 'white';
                 ctx.fillRect(0, 0, canvasWidth, canvasHeight);
                 ctx.strokeStyle = 'black';
-                ctx.lineWidth = 10;
+                ctx.lineWidth = 5; 
                 
+                const selectedFont = 'Inter'; // Font di-hardcode menjadi Inter
+                const canvasPadding = 25; 
                 
-                // Ambil font yang dipilih
-                const selectedFont = fontSelector.value;
-
-                // Ambil data umum
-                const promoTitle = document.getElementById('promoTitle').value.toUpperCase();
-                const promoPeriod = document.getElementById('promoPeriod').value;
-                
-                // Gambar border luar
-                const canvasPadding = 50; // Atur nilai padding sesuai keinginan
-
-                ctx.strokeRect(
-                    ctx.lineWidth / 2 + canvasPadding, 
-                    ctx.lineWidth / 2 + canvasPadding, 
-                    canvasWidth - ctx.lineWidth - (2 * canvasPadding), 
-                    canvasHeight - ctx.lineWidth - (2 * canvasPadding)
-                );
-                
-
-                // Gambar judul utama, beri jarak dari atas
-                ctx.fillStyle = 'black';
-                ctx.textAlign = 'center';
-                ctx.font = `900 180px '${selectedFont}'`;
-                ctx.fillText(promoTitle, canvasWidth / 2, 350);
-                
-                // Garis bawah judul
-                ctx.beginPath();
-                ctx.moveTo(canvasWidth * 2, 120);
-                ctx.lineTo(canvasWidth * 2, 120);
-                ctx.stroke();
-
-                // Ambil data produk dari semua field
-                const productElements = document.querySelectorAll('.product-item');
+                const productElements = document.querySelectorAll(`#productList${pageNumber} .product-item`);
                 const products = [];
-                
                 productElements.forEach(p => {
                     products.push({
                         nama: p.querySelector('.data-nama').value.toUpperCase(),
                         deskripsi: p.querySelector('.data-deskripsi').value,
                         hargaCoret: p.querySelector('.data-coret').value,
+                        hargaCoretEnabled: p.querySelector('.data-coret-toggle').checked,
                         hargaPromo: p.querySelector('.data-promo').value,
                         extra: p.querySelector('.data-extra').value
                     });
                 });
-                
-                if (products.length === 0) {
-                    ctx.font = `400 70px '${selectedFont}'`;
-                    ctx.fillText("Tambahkan produk untuk dibuatkan promosi.", canvasWidth / 2, canvasHeight / 2);
-                    downloadBtn.disabled = true;
-                    return;
-                }
 
-                // Konfigurasi Grid
-                const numProducts = products.length;
-                const cols = numProducts > 3 ? 2 : 1; // Jika lebih dari 3 produk, gunakan 2 kolom
-                const rows = Math.ceil(numProducts / cols);
-                const padding = 10;
-                const topMargin = 550; 
-                const bottomMargin = 250;
-                const cellWidth = (canvasWidth - padding * 2) / cols;
-                const cellHeight = (canvasHeight - topMargin - bottomMargin) / rows;
-                
-                // Gambar Garis Grid
-                ctx.beginPath();
-                // Garis vertikal
-                if (cols > 1) {
-                    ctx.moveTo(canvasWidth / 2, topMargin);
-                    ctx.lineTo(canvasWidth / 2, topMargin + (cellHeight * rows));
-                }
-                // Garis horizontal dan garis tepi atas/bawah grid
-                ctx.moveTo(52, topMargin); // Garis tepi atas
-                ctx.lineTo(canvasWidth - 52, topMargin);
-                for (let i = 1; i <= rows; i++) {
-                    ctx.moveTo(52, topMargin + (cellHeight * i));
-                    ctx.lineTo(canvasWidth - 52, topMargin + (cellHeight * i));
-                }
-                ctx.stroke();
-                
-                // Gambar setiap produk di dalam selnya
-                products.forEach((product, i) => {
-                    const row = Math.floor(i / cols);
-                    const col = i % cols;
-                    
-                    const startX = col * cellWidth + padding;
-                    const startY = row * cellHeight + topMargin;
-                    
-                    const centerX = startX + cellWidth / 2;
-                    let currentY = startY + cellHeight * 0.2;
+                if (pageNumber <= 2) {
+                    ctx.strokeRect(canvasPadding, canvasPadding, canvasWidth - (2 * canvasPadding), canvasHeight - (2 * canvasPadding));
 
-                    // Nama Produk
-                    ctx.font = `900 170px '${selectedFont}'`;
+                    const promoTitle = document.getElementById('promoTitle').value.toUpperCase();
+                    const promoPeriod = document.getElementById('promoPeriod').value;
+
                     ctx.fillStyle = 'black';
                     ctx.textAlign = 'center';
-                    wrapText(ctx, product.nama, centerX, currentY, cellWidth * 10, 100);
-                    currentY += 150;
-
-                    // Deskripsi
-                    ctx.font = `600 86px '${selectedFont}'`;
-                    wrapText(ctx, product.deskripsi, centerX, currentY, cellWidth * 0.8, 95);
-                    currentY += 320;
+                    ctx.font = `900 90px '${selectedFont}'`;
+                    ctx.fillText(promoTitle, canvasWidth / 2, 175);
                     
-                    // Harga Coret
-                    if (product.hargaCoret) {
-                        ctx.font = `900 145px '${selectedFont}'`;
-                        ctx.fillStyle = '#000'; // Warna abu-abu
-                        const coretText = `Rp. ${product.hargaCoret}`;
-                        const textMetrics = ctx.measureText(coretText);
-                        ctx.fillText(coretText, centerX, currentY);
+                    ctx.beginPath();
+                    ctx.moveTo(canvasPadding, 275);
+                    ctx.lineTo(canvasWidth - canvasPadding, 275);
+                    ctx.stroke();
                     
+                    ctx.beginPath();
+                    ctx.moveTo(canvasPadding, canvasHeight - 125);
+                    ctx.lineTo(canvasWidth - canvasPadding, canvasHeight - 125);
+                    ctx.stroke();
+
+                    ctx.font = `800 45px '${selectedFont}'`;
+                    ctx.fillText(promoPeriod, canvasWidth / 2, canvasHeight - 60);
+
+                    const cols = 2;
+                    const rows = 2;
+                    const topMargin = 275; 
+                    const bottomMargin = 125;
+                    const cellWidth = (canvasWidth - (2 * canvasPadding)) / cols;
+                    const cellHeight = (canvasHeight - topMargin - bottomMargin) / rows;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(canvasWidth / 2, topMargin);
+                    ctx.lineTo(canvasWidth / 2, topMargin + (cellHeight * rows));
+                    ctx.moveTo(canvasPadding, topMargin + cellHeight);
+                    ctx.lineTo(canvasWidth - canvasPadding, topMargin + cellHeight);
+                    ctx.stroke();
+                    
+                    products.forEach((product, i) => {
+                        if (!product.nama && !product.hargaPromo) return;
+                        const row = Math.floor(i / cols);
+                        const col = i % cols;
+                        const startX = col * cellWidth + canvasPadding;
+                        const startY = row * cellHeight + topMargin;
+                        const centerX = startX + cellWidth / 2;
+                        let currentY = startY + cellHeight * 0.250;
+
+                        ctx.font = `900 65px '${selectedFont}'`;
+                        ctx.fillStyle = 'black';
+                        ctx.textAlign = 'center';
+                        wrapText(ctx, product.nama, centerX, currentY, cellWidth * 0.9, 65);
+                        currentY += 90; 
                         
-                        // Gambar garis coret manual
-                        ctx.beginPath();
-                        ctx.strokeStyle = '#000';
-                        ctx.lineWidth = 20;
-                        ctx.moveTo(centerX - textMetrics.width / 1.8, currentY - 0);
-                        ctx.lineTo(centerX + textMetrics.width / 1.8, currentY - 95);
-                        ctx.stroke();
-                        ctx.lineWidth = 10; // Reset line width
-                        ctx.strokeStyle = 'black';
+                        ctx.font = `600 35px '${selectedFont}'`;
+                        wrapText(ctx, product.deskripsi, centerX, currentY, cellWidth * 0.9, 40);
+                        currentY += 120;
                         
-                        currentY += 340;
+                        if (product.hargaCoret) {
+                            ctx.font = `900 55px '${selectedFont}'`;
+                            ctx.fillStyle = 'black';
+                            const coretText = `${product.hargaCoret}`;
+                            const textMetrics = ctx.measureText(coretText);
+                            ctx.fillText(coretText, centerX, currentY);
+                            
+                            if (product.hargaCoretEnabled) {
+                                ctx.save();
+                                ctx.beginPath();
+                                ctx.strokeStyle = '#000';
+                                ctx.lineWidth = 5;
+                                ctx.moveTo(centerX - textMetrics.width / 2, currentY - 0);
+                                ctx.lineTo(centerX + textMetrics.width / 2, currentY - 30);
+                                ctx.stroke();
+                                ctx.restore();
+                            }
+                            currentY += 120;
+                        }
+
+                        ctx.font = `900 90px '${selectedFont}'`;
+                        ctx.fillStyle = 'black';
+                        ctx.fillText(product.hargaPromo, centerX, currentY);
+                        
+                        if (product.extra) {
+                            ctx.font = `900 45px '${selectedFont}'`;
+                            ctx.textAlign = 'right';
+                            wrapText(ctx, product.extra, startX + cellWidth - 50, startY + cellHeight - 90, cellWidth * 0.9, 50);
+                        }
+                    });
+
+                } else {
+                    const topMargin = 45;
+                    const bottomMargin = 45;
+                    const rows = 5;
+                    const contentPaddingX = canvasWidth * 0.30;
+                    
+                    ctx.strokeRect(contentPaddingX, canvasPadding, canvasWidth - (2 * contentPaddingX), canvasHeight - (2 * canvasPadding));
+
+                    const cellWidth = canvasWidth - (2 * contentPaddingX);
+                    const startX = contentPaddingX;
+                    const cellHeight = (canvasHeight - topMargin - bottomMargin) / rows;
+                    
+                    ctx.beginPath();
+                    for (let i = 1; i < rows; i++) {
+                        ctx.moveTo(startX, topMargin + (cellHeight * i));
+                        ctx.lineTo(startX + cellWidth, topMargin + (cellHeight * i));
                     }
+                    ctx.stroke();
+                    
+                    products.forEach((product, i) => {
+                        if (!product.nama && !product.hargaPromo) return;
+                        const row = i;
+                        const startY = row * cellHeight + topMargin;
+                        const centerX = startX + cellWidth / 2;
+                        let currentY = startY + cellHeight * 0.25;
 
-                    // Harga Promo
-                    ctx.font = `900 220px '${selectedFont}'`;
-                    ctx.fillStyle = 'black';
-                    ctx.fillText(product.hargaPromo, centerX, currentY);
-                    currentY += 20;
-
-                    // Keterangan Tambahan
-                    if (product.extra) {
-                        ctx.font = `900 120px '${selectedFont}'`;
-                        ctx.fillStyle = 'black'; // Pastikan warna teks terdefinisi
-                        ctx.textAlign = 'right';
-
-                        // Sesuaikan posisi X agar teks rata kanan dan memiliki padding.
-                        // 'startX + cellWidth' adalah batas kanan dari area, dan '- 20' adalah padding.
-                        const textX = startX + cellWidth - 150; 
-                        const textY = startY + cellHeight - 150;
-                        const maxWidth = cellWidth * 1;
-                        const lineHeight = 15;
+                        ctx.font = `900 45px '${selectedFont}'`;
+                        ctx.fillStyle = 'black';
+                        ctx.textAlign = 'center';
+                        wrapText(ctx, product.nama, centerX, currentY, cellWidth * 0.9, 50);
+                        currentY += 55;
+                        ctx.font = `600 30px '${selectedFont}'`;
+                        wrapText(ctx, product.deskripsi, centerX, currentY, cellWidth * 0.9, 35);
+                        currentY += 60;
                         
-                        // Memanggil fungsi wrapText dengan posisi X yang baru
-                        wrapText(ctx, product.extra, textX, textY, maxWidth, lineHeight);
+                        if (product.hargaCoret) {
+                            ctx.font = `900 45px '${selectedFont}'`;
+                            ctx.fillStyle = '#000';
+                            const coretText = `${product.hargaCoret}`;
+                            const textMetrics = ctx.measureText(coretText);
+                            ctx.fillText(coretText, centerX, currentY);
+                            
+                            if (product.hargaCoretEnabled) {
+                                ctx.save();
+                                ctx.beginPath();
+                                ctx.strokeStyle = '#333';
+                                ctx.lineWidth = 5;
+                                ctx.moveTo(centerX - textMetrics.width / 2, currentY - 0);
+                                ctx.lineTo(centerX + textMetrics.width / 2, currentY - 30);
+                                ctx.stroke();
+                                ctx.restore();
+                            }
+                            currentY += 70;
+                        }
 
-                    }
-                });
+                        ctx.font = `900 75px '${selectedFont}'`;
+                        ctx.fillStyle = 'black';
+                        ctx.fillText(product.hargaPromo, centerX, currentY);
+                        
+                        if (product.extra) {
+                            ctx.font = `700 25px '${selectedFont}'`;
+                            ctx.textAlign = 'right';
+                            wrapText(ctx, product.extra, startX + cellWidth - 70, startY + cellHeight - 3-20, cellWidth * 5.4, 35);
+                        }
+                    });
+                }
+            }
 
-                // Gambar periode promosi di bagian bawah
-                ctx.fillStyle = 'black';
-                ctx.textAlign = 'center';
-                ctx.font = `800 90px '${selectedFont}'`;
-                ctx.fillText(promoPeriod, canvasWidth / 2, canvasHeight - 120);
-
-                // Aktifkan tombol unduh
+            function generateAllPromotions() {
+                for (let i = 1; i <= TOTAL_PAGES; i++) {
+                    drawPage(i);
+                }
                 downloadBtn.disabled = false;
             }
 
+            function handleInputAndGenerate() {
+                saveData();
+                generateAllPromotions();
+            }
+
             // --- Event Listeners ---
-            generateBtn.addEventListener('click', generatePromotion);
-            downloadBtn.addEventListener('click', function () {
+            downloadBtn.addEventListener('click', async function () {
                 if (this.disabled) return;
                 
                 const { jsPDF } = window.jspdf;
-                const doc = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: 'a4'
-                });
-
-                const imgData = canvas.toDataURL('image/png', 1.0);
-                
+                const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
                 const pdfWidth = doc.internal.pageSize.getWidth();
                 const pdfHeight = doc.internal.pageSize.getHeight();
 
-                doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-                doc.save('promo-gantung-a4.pdf');
+                for (let i = 1; i <= TOTAL_PAGES; i++) {
+                    const canvas = document.getElementById(`promoCanvas${i}`);
+                    const imgData = canvas.toDataURL('image/jpeg', 0.8); 
+                    if (i > 1) doc.addPage();
+                    doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                }
+                
+                doc.save('promo-gantung-5-halaman.pdf');
             });
             
-            fontSelector.addEventListener('change', generatePromotion);
-
-
-            // --- Inisialisasi ---
-            // Tambahkan 4 produk awal sebagai contoh
-            addProduct();
-            addProduct();
-            addProduct();
-            addProduct();
-            
-            // Isi data contoh
-            const sampleData = [
-                { nama: 'TOP', deskripsi: 'Gula 10X3', coret: '25.700', promo: 'BELI 3', extra: 'GRATIS 1' },
-                { nama: 'ULTRA', deskripsi: 'TEH KOTAK JASMIN TP 300ml', coret: '12.000', promo: '10.500', extra: '/3PCS' },
-                { nama: 'BONEETO', deskripsi: 'CHOCLATE BOX 685G', coret: '78.900', promo: '64.900', extra: '' },
-                { nama: 'LUWAK', deskripsi: 'WHT KOFFIE 9+1x20G', coret: '15.900', promo: '13.500', extra: '' }
-            ];
-            
-            const initialProducts = document.querySelectorAll('.product-item');
-            initialProducts.forEach((p, i) => {
-                if (sampleData[i]) {
-                    p.querySelector('.data-nama').value = sampleData[i].nama;
-                    p.querySelector('.data-deskripsi').value = sampleData[i].deskripsi;
-                    p.querySelector('.data-coret').value = sampleData[i].coret;
-                    p.querySelector('.data-promo').value = sampleData[i].promo;
-                    p.querySelector('.data-extra').value = sampleData[i].extra;
+            // Event listener untuk memperbarui pratinjau secara otomatis
+            document.getElementById('promoTitle').addEventListener('input', handleInputAndGenerate);
+            document.getElementById('promoPeriod').addEventListener('input', handleInputAndGenerate);
+            pageContentsContainer.addEventListener('input', handleInputAndGenerate);
+            pageContentsContainer.addEventListener('change', function(e) {
+                if (e.target.classList.contains('data-coret-toggle')) {
+                    handleInputAndGenerate(); 
                 }
             });
+
+            // --- Inisialisasi Akhir ---
+            initializeUI();
             
-            // Generate gambar awal saat halaman dimuat
-            generatePromotion();
+            const dataWasLoaded = loadData();
+
+            if (!dataWasLoaded) {
+                const sampleData = [
+                    { nama: 'TOP', deskripsi: 'Gula 10X3', coret: '25.700', promo: 'BELI 3', extra: 'GRATIS 1', coretEnabled: true },
+                    { nama: 'ULTRA', deskripsi: 'TEH KOTAK JASMIN TP 300ml', coret: '12.000', promo: '10.500', extra: '/3PCS', coretEnabled: true },
+                    { nama: 'BONEETO', deskripsi: 'CHOCLATE BOX 685G', coret: '78.900', promo: '64.900', extra: '', coretEnabled: true },
+                    { nama: 'LUWAK', deskripsi: 'WHT KOFFIE 9+1x20G', coret: '15.900', promo: '13.500', extra: '', coretEnabled: true }
+                ];
+                
+                document.querySelectorAll('#productList1 .product-item').forEach((p, i) => {
+                    if (sampleData[i]) {
+                        p.querySelector('.data-nama').value = sampleData[i].nama;
+                        p.querySelector('.data-deskripsi').value = sampleData[i].deskripsi;
+                        p.querySelector('.data-coret').value = sampleData[i].coret;
+                        p.querySelector('.data-promo').value = sampleData[i].promo;
+                        p.querySelector('.data-extra').value = sampleData[i].extra;
+                        p.querySelector('.data-coret-toggle').checked = sampleData[i].coretEnabled;
+                    }
+                });
+            }
+            
+            generateAllPromotions();
         });
     </script>
 </body>
