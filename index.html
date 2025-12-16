@@ -71,7 +71,7 @@
         .gallery-grid {
             display: flex; gap: 20px; overflow-x: auto; padding-bottom: 2rem;
             scroll-snap-type: x mandatory;
-            padding-right: 20px; /* Spacer kanan */
+            padding-right: 20px;
         }
         .gallery-item {
             min-width: 250px; flex: 0 0 auto; scroll-snap-align: center;
@@ -85,7 +85,7 @@
             width: 240px; height: 480px; border: 8px solid #333; border-radius: 30px;
             overflow: hidden; margin-bottom: 1rem; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
             pointer-events: none;
-            background: #fff; /* Fallback jika gambar loading */
+            background: #fff;
         }
         .gallery-caption { font-weight: bold; color: var(--text-light); margin-bottom: 5px; }
 
@@ -219,7 +219,7 @@
                  data-title="Dashboard Utama" 
                  data-desc="Halaman utama aplikasi yang menampilkan identitas toko (Nama & Kode). Menyediakan akses cepat (shortcut) ke menu vital seperti Stock Opname, Cek Stok, Laporan Toko, dan fitur cetak ulang struk via input No. Bon.">
                 <div class="gallery-phone">
-                    <img src="https://raw.githubusercontent.com/mingcen27/dev/54b6482a10e0f63d815c53e625ee508544225a32/a/mn.jpeg" alt="Main Menu" class="screen-content">
+                    <img src="images/mn.jpeg" alt="Main Menu" class="screen-content">
                 </div>
                 <div class="gallery-caption">Main Menu</div>
             </div>
@@ -228,7 +228,7 @@
                  data-title="Manajemen Stock Opname" 
                  data-desc="Fitur lengkap untuk kebutuhan audit stok. Pengguna dapat mencetak laporan selisih stok (variance), melihat hasil adjust, mengecek selisih per rak, serta memantau persentase penyelesaian SO secara real-time.">
                 <div class="gallery-phone">
-                    <img src="so.jpeg" alt="Stock Opname" class="screen-content">
+                    <img src="images/so.jpeg" alt="Stock Opname" class="screen-content">
                 </div>
                 <div class="gallery-caption">Stock Opname</div>
             </div>
@@ -237,7 +237,7 @@
                  data-title="Cek Stok & Sinkronisasi" 
                  data-desc="Modul pengecekan stok yang fleksibel. Mendukung Cek Stok Manual dan pembuatan Tabel Cek Stok Custom (daftar PLU tertentu). Fitur ini memudahkan sinkronisasi data stok barang secara otomatis dan terorganisir.">
                 <div class="gallery-phone">
-                    <img src="stok.jpeg" alt="Cek Stok" class="screen-content">
+                    <img src="images/stok.jpeg" alt="Cek Stok" class="screen-content">
                 </div>
                 <div class="gallery-caption">Cek Stok</div>
             </div>
@@ -245,8 +245,8 @@
             <div class="gallery-item" onclick="openModal(this)" 
                  data-title="Laporan Harian Toko" 
                  data-desc="Pusat data performa toko. User dapat melihat 'Daily Performance' berdasarkan rentang tanggal, serta mengakses berbagai laporan spesifik seperti Report Sales Member, E-Voucher, PPS, dan laporan barang tag DGS.">
-                <div class="/images/gallery-phone">
-                    <img src="lt.jpg" alt="Laporan Toko" class="screen-content">
+                <div class="gallery-phone">
+                    <img src="images/lt.jpeg" alt="Laporan Toko" class="screen-content">
                 </div>
                 <div class="gallery-caption">Laporan Toko</div>
             </div>
@@ -255,7 +255,7 @@
                  data-title="Peta Planogram Rak" 
                  data-desc="Digitalisasi layout toko. Fitur ini membantu pramuniaga mencari lokasi rak yang tepat (contoh: AA1 Reg Beverages, AC0 Chiller) untuk display barang yang rapi sesuai standar planogram perusahaan.">
                 <div class="gallery-phone">
-                    <img src="../images/plno.jpeg" alt="Planogram" class="screen-content">
+                    <img src="images/plno.jpeg" alt="Planogram" class="screen-content">
                 </div>
                 <div class="gallery-caption">Planogram</div>
             </div>
@@ -264,7 +264,7 @@
                  data-title="Kalkulator Expired Date" 
                  data-desc="Sistem peringatan dini kedaluwarsa. Aplikasi menghitung sisa hari retur secara otomatis, memberikan status (AMAN/WARNING), dan menyimpan database item expired agar tidak terlewat saat retur.">
                 <div class="gallery-phone">
-                    <img src="expd.jpeg" alt="Cek Expired" class="screen-content">
+                    <img src="images/expd.jpeg" alt="Cek Expired" class="screen-content">
                 </div>
                 <div class="gallery-caption">Cek Expired</div>
             </div>
@@ -273,7 +273,7 @@
                  data-title="Monitoring PO Kiriman" 
                  data-desc="Transparansi penerimaan barang. Menampilkan daftar nomor faktur (PO) yang masuk, lengkap dengan tanggal dan nominal rupiah, memastikan administrasi barang masuk tercatat dengan valid.">
                 <div class="gallery-phone">
-                    <img src="po.jpeg" alt="Cek PO" class="screen-content">
+                    <img src="images/po.jpeg" alt="Cek PO" class="screen-content">
                 </div>
                 <div class="gallery-caption">Cek PO Kiriman</div>
             </div>
@@ -282,7 +282,7 @@
                  data-title="Barcode Generator" 
                  data-desc="Utilitas praktis untuk operasional. Memungkinkan pembuatan barcode secara instan untuk kebutuhan Member, Grup WA Customer, hingga Barcode Sisir Harga untuk label rak.">
                 <div class="gallery-phone">
-                    <img src="https://github.com/mingcen27/dev/blob/54b6482a10e0f63d815c53e625ee508544225a32/a/barcode.jpeg?raw=true" alt="Barcode Generator" class="screen-content">
+                    <img src="images/barcode.jpeg" alt="Barcode Generator" class="screen-content">
                 </div>
                 <div class="gallery-caption">Buat Barcode</div>
             </div>
@@ -337,15 +337,3 @@
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
